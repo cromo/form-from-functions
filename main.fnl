@@ -10,19 +10,19 @@
         {:state {:input
                  {:hand/left {:was-tracked false
                               :is-tracked false
-                              :position [0 0 0]}
+                              :position (lovr.math.newVec3)}
                   :hand/right {:was-tracked false
                                :is-tracked false
-                               :position [0 0 0]}}}})
+                               :position (lovr.math.newVec3)}}}})
 (global boxes [{:x 0 :y 1 :z -0.3}])
 
-(fn update-controller-state [device]
-  (let [input envronment.state.input
-        is-tracked (lovr.headset.isTracked device)]
-    (tset input device :is-tracked is-tracked)
+(fn update-controller-state [device-name]
+  (let [device (. envronment.state.input device-name)
+        is-tracked (lovr.headset.isTracked device-name)]
+    (set device.is-tracked is-tracked)
     (when is-tracked
-      (tset input device :was-tracked true)
-      (tset input device :position [(lovr.headset.getPosition device)]))))
+      (set device.was-tracked true)
+      (device.position:set (lovr.headset.getPosition device-name)))))
 
 (fn lovr.update [dt]
   (update-controller-state :hand/left)
@@ -33,7 +33,7 @@
   (each [hand {: was-tracked : is-tracked : position} (pairs envronment.state.input)]
         (when was-tracked
           (if (not is-tracked) (lovr.graphics.setColor 0.2 0.2 0.2 0.8))
-          (lovr.graphics.sphere (. position 1) (. position 2) (. position 3) 0.03)
+          (lovr.graphics.sphere position 0.03)
           (if (not is-tracked) (lovr.graphics.setColor 1 1 1))))
   (each [i {: x : y : z} (ipairs boxes)]
         (lovr.graphics.box :line x y z 0.1 0.1 0.1)))
