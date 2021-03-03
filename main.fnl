@@ -14,8 +14,8 @@
                   :hand/right {:was-tracked false
                                :is-tracked false
                                :position (lovr.math.newVec3)}}
-                 :logs ""}})
-(global boxes [{:x 0 :y 1 :z -0.3}])
+                 :logs ""
+                 :blocks [{:x 0 :y 1 :z -0.4}]}})
 
 (global frames-since-launch 0)
 
@@ -43,5 +43,5 @@
           (if (not is-tracked) (lovr.graphics.setColor 0.2 0.2 0.2 0.8))
           (lovr.graphics.sphere position 0.03)
           (if (not is-tracked) (lovr.graphics.setColor 1 1 1))))
-  (each [i {: x : y : z} (ipairs boxes)]
+  (each [i {: x : y : z} (ipairs envronment.state.blocks)]
         (lovr.graphics.box :line x y z 0.1 0.1 0.1)))
