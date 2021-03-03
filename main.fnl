@@ -13,14 +13,14 @@
                               :position (lovr.math.newVec3)}
                   :hand/right {:was-tracked false
                                :is-tracked false
-                               :position (lovr.math.newVec3)}}}})
+                               :position (lovr.math.newVec3)}}
+                 :logs ""}})
 (global boxes [{:x 0 :y 1 :z -0.3}])
 
-(global logs "")
 (global frames-since-launch 0)
 
 (fn log [level tag message]
-  (global logs (.. logs "\n" level " " tag " " message)))
+  (set envronment.state.logs (.. envronment.state.logs "\n" level " " tag " " message)))
 
 (fn update-controller-state [device-name]
   (let [device (. envronment.state.input device-name)
@@ -36,8 +36,8 @@
 
 (fn lovr.draw []
   (global frames-since-launch (+ 1 frames-since-launch))
-  (lovr.graphics.print (.. "hello" "fennel" (lovr.headset.getDriver)) 0 1.7 -3 0.5)
-  (lovr.graphics.print logs 0 1.5 -3 0.1 0 0 1 0 0 :center :top)
+  (when (= 0 (% frames-since-launch 72)) (log :info :test "testing"))
+  (lovr.graphics.print envronment.state.logs 0 1.5 -3 0.1 0 0 1 0 0 :center :top)
   (each [hand {: was-tracked : is-tracked : position} (pairs envronment.state.input)]
         (when was-tracked
           (if (not is-tracked) (lovr.graphics.setColor 0.2 0.2 0.2 0.8))
