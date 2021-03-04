@@ -40,7 +40,8 @@
   (update-controller-state :hand/right))
 
 (fn lovr.draw []
-  (set environment.state.time.frames-since-launch (+ 1 environment.state.time.frames-since-launch))
+  (set environment.state.time.frames-since-launch
+       (+ 1 environment.state.time.frames-since-launch))
   (lovr.graphics.print environment.state.logs 0 1.5 -3 0.1 0 0 1 0 0 :center :top)
   (each [hand {: was-tracked : is-tracked : position} (pairs environment.state.input)]
         (when was-tracked
