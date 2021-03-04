@@ -7,17 +7,17 @@
 ; - A variable dictionary, potentially using generated names/colors
 
 (global environment
-        {:state {:input
-                 {:hand/left {:was-tracked false
-                              :is-tracked false
-                              :position (lovr.math.newVec3)}
-                  :hand/right {:was-tracked false
-                               :is-tracked false
-                               :position (lovr.math.newVec3)}}
-                 :logs ""
-                 :blocks [(lovr.math.newVec3 0 1 -0.4)]}})
-
-(global frames-since-launch 0)
+        {:state
+         {:input
+          {:hand/left {:was-tracked false
+                       :is-tracked false
+                       :position (lovr.math.newVec3)}
+           :hand/right {:was-tracked false
+                        :is-tracked false
+                        :position (lovr.math.newVec3)}}
+          :logs ""
+          :blocks [(lovr.math.newVec3 0 1 -0.4)]
+          :time {:frames-since-launch 0}}})
 
 (fn log [level tag message]
   (set environment.state.logs (.. environment.state.logs "\n" level " " tag " " message)))
@@ -35,8 +35,8 @@
   (update-controller-state :hand/right))
 
 (fn lovr.draw []
-  (global frames-since-launch (+ 1 frames-since-launch))
-  (when (= 0 (% frames-since-launch 72)) (log :info :test "testing"))
+  (set environment.state.time.frames-since-launch (+ 1 environment.state.time.frames-since-launch))
+  (when (= 0 (% environment.state.time.frames-since-launch 72)) (log :info :test "testing"))
   (lovr.graphics.print environment.state.logs 0 1.5 -3 0.1 0 0 1 0 0 :center :top)
   (each [hand {: was-tracked : is-tracked : position} (pairs environment.state.input)]
         (when was-tracked
