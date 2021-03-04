@@ -17,7 +17,9 @@
                         :position (lovr.math.newVec3)}}
           :logs ""
           :blocks [(lovr.math.newVec3 0 1 -0.4)]
-          :time {:frames-since-launch 0}}})
+          :time {:frames-since-launch 0}}
+         :config
+         {:headset {:refresh-rate-hz (lovr.headset.getDisplayFrequency)}}})
 
 (fn log [level tag message]
   (set environment.state.logs (.. environment.state.logs "\n" level " " tag " " message)))
@@ -30,13 +32,17 @@
       (set device.was-tracked true)
       (device.position:set (lovr.headset.getPosition device-name)))))
 
+(fn lovr.load []
+  (log :info :config (.. "Headset refresh rate: " environment.config.headset.refresh-rate-hz)))
+
 (fn lovr.update [dt]
   (update-controller-state :hand/left)
   (update-controller-state :hand/right))
 
 (fn lovr.draw []
   (set environment.state.time.frames-since-launch (+ 1 environment.state.time.frames-since-launch))
-  (when (= 0 (% environment.state.time.frames-since-launch 72)) (log :info :test "testing"))
+  (when (= 0 (% environment.state.time.frames-since-launch environment.config.headset.refresh-rate-hz))
+    (log :info :test "testing"))
   (lovr.graphics.print environment.state.logs 0 1.5 -3 0.1 0 0 1 0 0 :center :top)
   (each [hand {: was-tracked : is-tracked : position} (pairs environment.state.input)]
         (when was-tracked
