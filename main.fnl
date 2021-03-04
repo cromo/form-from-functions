@@ -41,8 +41,6 @@
 
 (fn lovr.draw []
   (set environment.state.time.frames-since-launch (+ 1 environment.state.time.frames-since-launch))
-  (when (= 0 (% environment.state.time.frames-since-launch environment.config.headset.refresh-rate-hz))
-    (log :info :test "testing"))
   (lovr.graphics.print environment.state.logs 0 1.5 -3 0.1 0 0 1 0 0 :center :top)
   (each [hand {: was-tracked : is-tracked : position} (pairs environment.state.input)]
         (when was-tracked
