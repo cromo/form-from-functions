@@ -28,8 +28,8 @@
 (fn log [level tag message]
   (set environment.state.logs (.. environment.state.logs "\n" level " " tag " " message)))
 
-(lambda add-box [box]
-        (table.insert environment.state.blocks box))
+(lambda add-block [block]
+        (table.insert environment.state.blocks block))
 
 (lambda format-vec3 [vec]
         (string.format "(vec3 %.2f, %.2f, %.2f)" (vec:unpack)))
@@ -49,16 +49,16 @@
   (update-controller-state :hand/left)
   (update-controller-state :hand/right)
   (when (lovr.headset.wasPressed :hand/left :x)
-    (add-box (new-block (lovr.headset.getPosition :hand/left))))
+    (add-block (new-block (lovr.headset.getPosition :hand/left))))
   (when (lovr.headset.wasPressed :hand/left :grip)
     (let [hand environment.state.input.hand/left.position
-          nearby-boxes (icollect [_ box (ipairs environment.state.blocks)]
-                                 (when (< (: (- hand box) :length) 0.1) box))
-          nearest-box (. nearby-boxes 1)]
+          nearby-blocks (icollect [_ block (ipairs environment.state.blocks)]
+                                 (when (< (: (- hand block) :length) 0.1) block))
+          nearest-block (. nearby-blocks 1)]
       (log :info :physics
-           (.. "boxes " (length nearby-boxes)
-               " nearest " (tostring nearest-box)))
-      (set environment.state.input.hand/left.grabbed nearest-box)))
+           (.. "blocks " (length nearby-blocks)
+               " nearest " (tostring nearest-block)))
+      (set environment.state.input.hand/left.grabbed nearest-block)))
   (when (lovr.headset.wasReleased :hand/left :grip)
     (set environment.state.input.hand/left.grabbed nil))
   (when environment.state.input.hand/left.grabbed
