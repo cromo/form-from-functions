@@ -6,6 +6,9 @@
 ; - Some form of typing (maybe using pre-made labels for known values or a simple floating keyboard?)
 ; - A variable dictionary, potentially using generated names/colors
 
+(lambda new-block [x y z]
+        (lovr.math.newVec3 x y z))
+
 (global environment
         {:state
          {:input
@@ -16,13 +19,16 @@
                         :is-tracked false
                         :position (lovr.math.newVec3)}}
           :logs ""
-          :blocks [(lovr.math.newVec3 0 1 -0.4)]
+          :blocks [(new-block 0 1 -0.4)]
           :time {:frames-since-launch 0}}
          :config
          {:headset {:refresh-rate-hz (lovr.headset.getDisplayFrequency)}}})
 
 (fn log [level tag message]
   (set environment.state.logs (.. environment.state.logs "\n" level " " tag " " message)))
+
+(lambda add-box [box]
+        (table.insert environment.state.blocks box))
 
 (fn update-controller-state [device-name]
   (let [device (. environment.state.input device-name)
@@ -37,7 +43,10 @@
 
 (fn lovr.update [dt]
   (update-controller-state :hand/left)
-  (update-controller-state :hand/right))
+  (update-controller-state :hand/right)
+  (when (lovr.headset.wasPressed :hand/left :x)
+    (log :info :input "x pressed!")
+    (add-box (new-block (lovr.headset.getPosition :hand/left)))))
 
 (fn lovr.draw []
   (set environment.state.time.frames-since-launch
