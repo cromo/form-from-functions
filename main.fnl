@@ -14,7 +14,8 @@
          {:input
           {:hand/left {:was-tracked false
                        :is-tracked false
-                       :position (lovr.math.newVec3)}
+                       :position (lovr.math.newVec3)
+                       :grabbed nil}
            :hand/right {:was-tracked false
                         :is-tracked false
                         :position (lovr.math.newVec3)}}
@@ -29,6 +30,9 @@
 
 (lambda add-box [box]
         (table.insert environment.state.blocks box))
+
+(lambda format-vec3 [vec]
+        (string.format "(vec3 %.2f, %.2f, %.2f)" (vec:unpack)))
 
 (fn update-controller-state [device-name]
   (let [device (. environment.state.input device-name)
@@ -45,8 +49,20 @@
   (update-controller-state :hand/left)
   (update-controller-state :hand/right)
   (when (lovr.headset.wasPressed :hand/left :x)
-    (log :info :input "x pressed!")
-    (add-box (new-block (lovr.headset.getPosition :hand/left)))))
+    (add-box (new-block (lovr.headset.getPosition :hand/left))))
+  (when (lovr.headset.wasPressed :hand/left :grip)
+    (let [hand environment.state.input.hand/left.position
+          nearby-boxes (icollect [_ box (ipairs environment.state.blocks)]
+                                 (when (< (: (- hand box) :length) 0.1) box))
+          nearest-box (. nearby-boxes 1)]
+      (log :info :physics
+           (.. "boxes " (length nearby-boxes)
+               " nearest " (tostring nearest-box)))
+      (set environment.state.input.hand/left.grabbed nearest-box)))
+  (when (lovr.headset.wasReleased :hand/left :grip)
+    (set environment.state.input.hand/left.grabbed nil))
+  (when environment.state.input.hand/left.grabbed
+    (environment.state.input.hand/left.grabbed:set environment.state.input.hand/left.position)))
 
 (fn lovr.draw []
   (set environment.state.time.frames-since-launch
