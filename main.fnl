@@ -65,13 +65,17 @@
     (environment.state.input.hand/left.grabbed:set environment.state.input.hand/left.position)))
 
 (fn lovr.draw []
+  ; Update frame count
   (set environment.state.time.frames-since-launch
        (+ 1 environment.state.time.frames-since-launch))
+  ; Draw logs
   (lovr.graphics.print environment.state.logs 0 1.5 -3 0.1 0 0 1 0 0 :center :top)
+  ; Draw hands
   (each [hand {: was-tracked : is-tracked : position} (pairs environment.state.input)]
         (when was-tracked
           (if (not is-tracked) (lovr.graphics.setColor 0.2 0.2 0.2 0.8))
           (lovr.graphics.sphere position 0.03)
           (if (not is-tracked) (lovr.graphics.setColor 1 1 1))))
+  ; Draw blocks
   (each [i position (ipairs environment.state.blocks)]
         (lovr.graphics.box :line position 0.1 0.1 0.1)))
