@@ -55,9 +55,6 @@
           nearby-blocks (icollect [_ block (ipairs environment.state.blocks)]
                                  (when (< (: (- hand block) :length) 0.1) block))
           nearest-block (. nearby-blocks 1)]
-      (log :info :physics
-           (.. "blocks " (length nearby-blocks)
-               " nearest " (tostring nearest-block)))
       (set environment.state.input.hand/left.grabbed nearest-block)))
   (when (lovr.headset.wasReleased :hand/left :grip)
     (set environment.state.input.hand/left.grabbed nil))
