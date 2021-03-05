@@ -1,0 +1,26 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build",
+      "type": "shell",
+      "command": "make",
+      "problemMatcher": {
+        "fileLocation": "relative",
+        "pattern": [
+          {
+            "regexp": "^Compile error in (.*):(\\d+)$",
+            "file": 1,
+            "line": 2
+          },
+          {
+            "regexp": "^  (.*)$",
+            "message": 1
+          }
+        ]
+      }
+    }
+  ]
+}
