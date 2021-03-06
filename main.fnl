@@ -65,10 +65,8 @@
     ))
 
 (fn update-grabbed-position [device-name]
-  (let [device (. environment.state.input device-name)
-        grabbed device.grabbed]
-    (when grabbed
-      (grabbed:set device.position))))
+  (let [device (. environment.state.input device-name)]
+    (when device.grabbed (device.grabbed:set device.position))))
 
 (fn lovr.load []
   (log :info :config (.. "Headset refresh rate: " environment.config.headset.refresh-rate-hz)))
