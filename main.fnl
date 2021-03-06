@@ -37,21 +37,22 @@
 
 (lambda format-hand [device-name]
         (let [hand (. environment.state.input device-name)]
-          (string.format "%s {is: %s was: %s pos: %s}"
+          (string.format "%s {is: %s was: %s pos: %s grabbed: %s}"
                          device-name
                          hand.is-tracked
                          hand.was-tracked
-                         (format-vec3 hand.position))))
+                         (format-vec3 hand.position)
+                         (not (not hand.grabbed)))))
 
-;; (fn update-grip-state [device-name]
-;;   (let [hand (. environment.state.input device-name)]
-;;     (when (lovr.headset.wasPressed device-name :grip)
-;;       (let [nearby-blocks (icollect [_ block (ipairs environment.state.blocks)]
-;;                                     (when (< (: (- hand.position block) :length) 0.1) block))
-;;             nearest-block (. nearby-blocks 1)]
-;;         (set hand.grabbed nearest-block))) 
-;;     (when (lovr.headset.wasReleased device-name :grip)
-;;       (tset environment.state.input device-name :grabbed nil))))
+(fn update-grip-state [device-name]
+  (let [hand (. environment.state.input device-name)]
+    (when (lovr.headset.wasPressed device-name :grip)
+      (let [nearby-blocks (icollect [_ block (ipairs environment.state.blocks)]
+                                    (when (< (: (- hand.position block) :length) 0.1) block))
+            nearest-block (. nearby-blocks 1)]
+        (set hand.grabbed nearest-block))) 
+    (when (lovr.headset.wasReleased device-name :grip)
+      (tset environment.state.input device-name :grabbed nil))))
 
 (fn update-controller-state [device-name]
   (let [device (. environment.state.input device-name)
@@ -60,8 +61,14 @@
     (when is-tracked
       (set device.was-tracked true)
       (device.position:set (lovr.headset.getPosition device-name)))
-    ;; (update-grip-state device-name)
+    (update-grip-state device-name)
     ))
+
+(fn update-grabbed-position [device-name]
+  (let [device (. environment.state.input device-name)
+        grabbed device.grabbed]
+    (when grabbed
+      (grabbed:set device.position))))
 
 (fn lovr.load []
   (log :info :config (.. "Headset refresh rate: " environment.config.headset.refresh-rate-hz)))
@@ -70,7 +77,9 @@
   (update-controller-state :hand/left)
   (update-controller-state :hand/right)
   (when (lovr.headset.wasPressed :hand/left :x)
-    (add-block (new-block (lovr.headset.getPosition :hand/left)))))
+    (add-block (new-block (lovr.headset.getPosition :hand/left))))
+  (update-grabbed-position :hand/left)
+  (update-grabbed-position :hand/right))
 
 (fn lovr.draw []
   ; Update frame count
