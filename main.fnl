@@ -18,7 +18,8 @@
                        :grabbed nil}
            :hand/right {:was-tracked false
                         :is-tracked false
-                        :position (lovr.math.newVec3)}}
+                        :position (lovr.math.newVec3)
+                        :grabbed nil}}
           :logs ""
           :blocks [(new-block 0 1 -0.4)]
           :time {:frames-since-launch 0}}
@@ -34,13 +35,24 @@
 (lambda format-vec3 [vec]
         (string.format "(vec3 %.2f, %.2f, %.2f)" (vec:unpack)))
 
+(fn update-grip-state [device-name]
+  (let [hand (. environment.state.input device-name)]
+    (when (lovr.headset.wasPressed device-name :grip)
+      (let [nearby-blocks (icollect [_ block (ipairs environment.state.blocks)]
+                                    (when (< (: (- hand.position block) :length) 0.1) block))
+            nearest-block (. nearby-blocks 1)]
+        (set hand.grabbed nearest-block))) 
+    (when (lovr.headset.wasReleased device-name :grip)
+      (tset environment.state.input device-name :grabbed nil))))
+
 (fn update-controller-state [device-name]
   (let [device (. environment.state.input device-name)
         is-tracked (lovr.headset.isTracked device-name)]
     (set device.is-tracked is-tracked)
     (when is-tracked
       (set device.was-tracked true)
-      (device.position:set (lovr.headset.getPosition device-name)))))
+      (device.position:set (lovr.headset.getPosition device-name)))
+    (update-grip-state device-name)))
 
 (fn lovr.load []
   (log :info :config (.. "Headset refresh rate: " environment.config.headset.refresh-rate-hz)))
@@ -50,14 +62,6 @@
   (update-controller-state :hand/right)
   (when (lovr.headset.wasPressed :hand/left :x)
     (add-block (new-block (lovr.headset.getPosition :hand/left))))
-  (when (lovr.headset.wasPressed :hand/left :grip)
-    (let [hand environment.state.input.hand/left.position
-          nearby-blocks (icollect [_ block (ipairs environment.state.blocks)]
-                                 (when (< (: (- hand block) :length) 0.1) block))
-          nearest-block (. nearby-blocks 1)]
-      (set environment.state.input.hand/left.grabbed nearest-block)))
-  (when (lovr.headset.wasReleased :hand/left :grip)
-    (set environment.state.input.hand/left.grabbed nil))
   (when environment.state.input.hand/left.grabbed
     (environment.state.input.hand/left.grabbed:set environment.state.input.hand/left.position)))
 
