@@ -7,7 +7,7 @@
 ; - A variable dictionary, potentially using generated names/colors
 
 (lambda new-block [x y z]
-        (lovr.math.newVec3 x y z))
+        {:position (lovr.math.newVec3 x y z)})
 
 (global store
         {:input
@@ -47,7 +47,7 @@
   (let [hand (. store.input device-name)]
     (when (lovr.headset.wasPressed device-name :grip)
       (let [nearby-blocks (icollect [_ block (ipairs store.blocks)]
-                                    (when (< (: (- hand.position block) :length) 0.1) block))
+                                    (when (< (: (- hand.position block.position) :length) 0.1) block))
             nearest-block (. nearby-blocks 1)]
         (set hand.grabbed nearest-block))) 
     (when (lovr.headset.wasReleased device-name :grip)
@@ -65,7 +65,7 @@
 
 (fn update-grabbed-position [device-name]
   (let [device (. store.input device-name)]
-    (when device.grabbed (device.grabbed:set device.position))))
+    (when device.grabbed (device.grabbed.position:set device.position))))
 
 (fn lovr.load []
   (log :info :config (.. "Headset refresh rate: " store.config.headset.refresh-rate-hz)))
@@ -96,5 +96,5 @@
           (set hands-drawn (+ 1 hands-drawn))))
   (lovr.graphics.print (.. "hands drawn: " hands-drawn) -0.1 1.7 -1 0.1)
   ; Draw blocks
-  (each [i position (ipairs store.blocks)]
-        (lovr.graphics.box :line position 0.1 0.1 0.1)))
+  (each [i block (ipairs store.blocks)]
+        (lovr.graphics.box :line block.position 0.1 0.1 0.1)))
