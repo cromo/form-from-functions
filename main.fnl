@@ -107,10 +107,8 @@
   (when (lovr.headset.wasPressed :hand/right :b)
     (set text (text:sub 1 -2)))
   (when (d-pad-was-pressed :hand/left :down)
-    (log :debug :input (.. "current char " current-character "/" (length character-list)))
     (set current-character (wrap (+ 1 current-character) (length character-list))))
   (when (d-pad-was-pressed :hand/left :up)
-    (log :debug :input (.. "current char " current-character "/" (length character-list)))
     (set current-character (wrap (- current-character 1) (length character-list)))))
 
 (fn lovr.load []
