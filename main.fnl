@@ -60,8 +60,7 @@
     (when is-tracked
       (set device.was-tracked true)
       (device.position:set (lovr.headset.getPosition device-name)))
-    (update-grip-state device-name)
-    ))
+    (update-grip-state device-name)))
 
 (fn update-grabbed-position [device-name]
   (let [device (. store.input device-name)]
