@@ -18,12 +18,17 @@
           :hand/right {:was-tracked false
                        :is-tracked false
                        :position (lovr.math.newVec3)
-                       :contents nil}}
+                       :contents nil}
+          :mode :text}
          :logs ""
          :blocks [(new-block 0 1 -0.4)]
          :time {:frames-since-launch 0}
          :config
          {:headset {:refresh-rate-hz (lovr.headset.getDisplayFrequency)}}})
+
+(var text "")
+(local character-list "ABC")
+(var current-character 1)
 
 (fn log [level tag message]
   (set store.logs (.. store.logs "\n" level " " tag " " message)))
@@ -66,6 +71,12 @@
   (let [device (. store.input device-name)]
     (when device.contents (device.contents.position:set device.position))))
 
+(fn update-text-input []
+  (when (lovr.headset.wasPressed :hand/right :a)
+    (set text (.. text (character-list:sub current-character current-character))))
+  (when (lovr.headset.wasPressed :hand/right :b)
+    (set text (text:sub 1 -2))))
+
 (fn lovr.load []
   (log :info :config (.. "Headset refresh rate: " store.config.headset.refresh-rate-hz)))
 
@@ -75,7 +86,8 @@
   (when (lovr.headset.wasPressed :hand/left :x)
     (add-block (new-block (lovr.headset.getPosition :hand/left))))
   (update-grabbed-position :hand/left)
-  (update-grabbed-position :hand/right))
+  (update-grabbed-position :hand/right)
+  (update-text-input))
 
 (fn lovr.draw []
   ; Update frame count
@@ -96,4 +108,7 @@
   (lovr.graphics.print (.. "hands drawn: " hands-drawn) -0.1 1.7 -1 0.1)
   ; Draw blocks
   (each [i block (ipairs store.blocks)]
-        (lovr.graphics.box :line block.position 0.1 0.1 0.1)))
+        (lovr.graphics.box :line block.position 0.1 0.1 0.1))
+  ; Draw text input
+  (lovr.graphics.print (.. text (character-list:sub 1 1)) 0 1 -0.5 0.05)
+  (lovr.graphics.print (tostring (select 2 (lovr.headset.getAxis :hand/left :thumbstick))) 0 0.9 -0.5 0.05))
