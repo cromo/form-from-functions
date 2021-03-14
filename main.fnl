@@ -6,21 +6,20 @@
 ; - Some form of typing (maybe using pre-made labels for known values or a simple floating keyboard?)
 ; - A variable dictionary, potentially using generated names/colors
 
+(lambda new-hand []
+        {:was-tracked false
+         :is-tracked false
+         :thumbstick (lovr.math.newVec2)
+         :position (lovr.math.newVec3)
+         :contents nil})
+
 (lambda new-block [x y z]
         {:position (lovr.math.newVec3 x y z)})
 
 (global store
         {:input
-         {:hand/left {:was-tracked false
-                      :is-tracked false
-                      :thumbstick (lovr.math.newVec2)
-                      :position (lovr.math.newVec3)
-                      :contents nil}
-          :hand/right {:was-tracked false
-                       :is-tracked false
-                       :thumbstick (lovr.math.newVec2)
-                       :position (lovr.math.newVec3)
-                       :contents nil}
+         {:hand/left (new-hand)
+          :hand/right (new-hand)
           :mode :text}
          :logs ""
          :blocks [(new-block 0 1 -0.4)]
