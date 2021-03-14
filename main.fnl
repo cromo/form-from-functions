@@ -10,6 +10,8 @@
         {:was-tracked false
          :is-tracked false
          :thumbstick (lovr.math.newVec2)
+         :d-pad {:up false :down false}
+         :previous {:d-pad {:up  false :down false}}
          :position (lovr.math.newVec3)
          :contents nil})
 
@@ -45,11 +47,13 @@
 
 (lambda format-hand [device-name]
         (let [hand (. store.input device-name)]
-          (string.format "%s {is: %s was: %s stick: %s pos: %s contents: %s}"
+          (string.format "%s {is: %s was: %s stick: %s up: %s down: %s pos: %s contents: %s}"
                          device-name
                          hand.is-tracked
                          hand.was-tracked
                          (format-vec2 hand.thumbstick)
+                         (tostring hand.d-pad.up)
+                         (tostring hand.d-pad.down)
                          (format-vec3 hand.position)
                          (not (not hand.contents)))))
 
@@ -66,12 +70,17 @@
 (fn update-controller-state [device-name]
   (let [device (. store.input device-name)
         is-tracked (lovr.headset.isTracked device-name)]
+    ; Save off previous virtual d-pad state
+    (each [key-name is-pressed (pairs device.d-pad)]
+          (tset device.previous.d-pad key-name is-pressed))
     (set device.is-tracked is-tracked)
     (when is-tracked
       (set device.was-tracked true)
       (device.position:set (lovr.headset.getPosition device-name)))
     (update-grip-state device-name)
-    (device.thumbstick:set (lovr.headset.getAxis device-name :thumbstick))))
+    (device.thumbstick:set (lovr.headset.getAxis device-name :thumbstick))
+    (set device.d-pad.down (< device.thumbstick.y -0.6))
+    (set device.d-pad.up (< 0.6 device.thumbstick.y))))
 
 (fn update-grabbed-position [device-name]
   (let [device (. store.input device-name)]
@@ -82,6 +91,14 @@
     (set text (.. text (character-list:sub current-character current-character))))
   (when (lovr.headset.wasPressed :hand/right :b)
     (set text (text:sub 1 -2))))
+
+(fn d-pad-was-pressed [device-name button]
+  (let [device (. store.input device-name)]
+    (and (. device.d-pad button) (not (. device.previous.d-pad button)))))
+
+(fn d-pad-was-released [device-name button]
+  (let [device (. store.input device-name)]
+    (and (not (. device.d-pad button)) (. device.previous.d-pad button))))
 
 (fn lovr.load []
   (log :info :config (.. "Headset refresh rate: " store.config.headset.refresh-rate-hz)))
