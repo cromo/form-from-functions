@@ -33,7 +33,7 @@
           :mode :text}
          :logs ""
          :blocks [(new-block 0 1 -0.4)]
-         :time {:frames-since-launch 0}
+         :elapsed {:frames 0 :seconds 0}
          :config
          {:headset {:refresh-rate-hz (lovr.headset.getDisplayFrequency)}}})
 
@@ -110,6 +110,7 @@
   (log :info :config (.. "Headset refresh rate: " store.config.headset.refresh-rate-hz)))
 
 (fn lovr.update [dt]
+  (set store.elapsed.seconds (+ store.elapsed.seconds dt))
   (update-controller-state :hand/left)
   (update-controller-state :hand/right)
   (when (lovr.headset.wasPressed :hand/left :x)
@@ -120,8 +121,7 @@
 
 (fn lovr.draw []
   ; Update frame count
-  (set store.time.frames-since-launch
-       (+ 1 store.time.frames-since-launch))
+  (set store.elapsed.frames (+ 1 store.elapsed.frames))
   ; Draw logs
   (lovr.graphics.print store.logs 0 1.5 -3 0.1 0 0 1 0 0 :center :top)
   ; Draw hands
