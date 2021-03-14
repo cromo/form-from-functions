@@ -14,12 +14,20 @@
          :previous {:d-pad {:up  false :down false}}
          :pressed {:up 0 :down 0}
          :next-repeat {:up -1 :down -1}
+         :repeated {:up false :down false}
          :position (lovr.math.newVec3)
          :contents nil})
 
 (fn d-pad-was-pressed [device-name button]
   (let [device (. store.input device-name)]
     (and (. device.d-pad button) (not (. device.previous.d-pad button)))))
+
+(fn d-pad-was-repeated [device-name button]
+  (. store.input device-name :repeated button))
+
+(fn d-pad-was-pressed-or-repeated [device-name button]
+  (or (d-pad-was-pressed device-name button)
+      (d-pad-was-repeated device-name button)))
 
 (fn d-pad-is-down [device-name button]
   (. store.input device-name :d-pad button))
@@ -43,7 +51,8 @@
          :blocks [(new-block 0 1 -0.4)]
          :elapsed {:frames 0 :seconds 0}
          :config
-         {:headset {:refresh-rate-hz (lovr.headset.getDisplayFrequency)}}})
+         {:headset {:refresh-rate-hz (lovr.headset.getDisplayFrequency)}
+          :repeat {:delay 0.7 :hz 0.05}}})
 
 (var text "")
 (local character-list " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~")
@@ -103,11 +112,13 @@
     (set device.d-pad.down (< device.thumbstick.y -0.6))
     (set device.d-pad.up (< 0.6 device.thumbstick.y))
     (each [direction _ (pairs device.pressed)]
+          (tset device.repeated direction false)
           (when (d-pad-was-pressed device-name direction)
             (tset device.pressed direction store.elapsed.seconds)
-            (tset device.next-repeat direction (+ 1 store.elapsed.seconds)))
+            (tset device.next-repeat direction (+ store.elapsed.seconds store.config.repeat.delay)))
           (when (and (d-pad-is-down device-name direction) (< (. device.next-repeat direction) store.elapsed.seconds))
-            (tset device.next-repeat direction (+ 0.1 (. device.next-repeat direction)))))))
+            (tset device.repeated direction true)
+            (tset device.next-repeat direction (+ (. device.next-repeat direction) store.config.repeat.hz))))))
 
 (fn update-grabbed-position [device-name]
   (let [device (. store.input device-name)]
@@ -118,9 +129,9 @@
     (set text (.. text (character-list:sub current-character current-character))))
   (when (lovr.headset.wasPressed :hand/right :b)
     (set text (text:sub 1 -2)))
-  (when (d-pad-was-pressed :hand/left :down)
+  (when (d-pad-was-pressed-or-repeated :hand/left :down)
     (set current-character (wrap (+ 1 current-character) (length character-list))))
-  (when (d-pad-was-pressed :hand/left :up)
+  (when (d-pad-was-pressed-or-repeated :hand/left :up)
     (set current-character (wrap (- current-character 1) (length character-list)))))
 
 (fn lovr.load []
