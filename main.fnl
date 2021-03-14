@@ -13,12 +13,16 @@
          :d-pad {:up false :down false}
          :previous {:d-pad {:up  false :down false}}
          :pressed {:up 0 :down 0}
+         :next-repeat {:up -1 :down -1}
          :position (lovr.math.newVec3)
          :contents nil})
 
 (fn d-pad-was-pressed [device-name button]
   (let [device (. store.input device-name)]
     (and (. device.d-pad button) (not (. device.previous.d-pad button)))))
+
+(fn d-pad-is-down [device-name button]
+  (. store.input device-name :d-pad button))
 
 (fn d-pad-was-released [device-name button]
   (let [device (. store.input device-name)]
@@ -59,10 +63,12 @@
 
 (lambda format-hand [device-name]
         (let [hand (. store.input device-name)]
-          (string.format "%s {is: %s was: %s stick: %s up: %s down: %s pos: %s contents: %s}"
+          (string.format "%s {is: %s was: %s pressed: {up: %.2f down: %.2f} stick: %s up: %s down: %s pos: %s contents: %s}"
                          device-name
                          hand.is-tracked
                          hand.was-tracked
+                         hand.pressed.up
+                         hand.pressed.down
                          (format-vec2 hand.thumbstick)
                          (tostring hand.d-pad.up)
                          (tostring hand.d-pad.down)
@@ -85,17 +91,23 @@
     ; Save off previous virtual d-pad state
     (each [key-name is-pressed (pairs device.d-pad)]
           (tset device.previous.d-pad key-name is-pressed))
+    ; Update tracking state and position
     (set device.is-tracked is-tracked)
     (when is-tracked
       (set device.was-tracked true)
       (device.position:set (lovr.headset.getPosition device-name)))
+    ; Process grabbing things
     (update-grip-state device-name)
+    ; Process thumbsticks and virtual d-pad
     (device.thumbstick:set (lovr.headset.getAxis device-name :thumbstick))
     (set device.d-pad.down (< device.thumbstick.y -0.6))
     (set device.d-pad.up (< 0.6 device.thumbstick.y))
-    (each [_ direction (ipairs device.pressed)]
+    (each [direction _ (pairs device.pressed)]
           (when (d-pad-was-pressed device-name direction)
-            (tset device.pressed direction store.elapsed.seconds)))))
+            (tset device.pressed direction store.elapsed.seconds)
+            (tset device.next-repeat direction (+ 1 store.elapsed.seconds)))
+          (when (and (d-pad-is-down device-name direction) (< (. device.next-repeat direction) store.elapsed.seconds))
+            (tset device.next-repeat direction (+ 0.1 (. device.next-repeat direction)))))))
 
 (fn update-grabbed-position [device-name]
   (let [device (. store.input device-name)]
