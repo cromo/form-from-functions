@@ -13,10 +13,12 @@
         {:input
          {:hand/left {:was-tracked false
                       :is-tracked false
+                      :thumbstick (lovr.math.newVec2)
                       :position (lovr.math.newVec3)
                       :contents nil}
           :hand/right {:was-tracked false
                        :is-tracked false
+                       :thumbstick (lovr.math.newVec2)
                        :position (lovr.math.newVec3)
                        :contents nil}
           :mode :text}
@@ -36,15 +38,19 @@
 (lambda add-block [block]
         (table.insert store.blocks block))
 
+(lambda format-vec2 [vec]
+        (string.format "(vec2 %.2f, %.2f)" (vec:unpack)))
+
 (lambda format-vec3 [vec]
         (string.format "(vec3 %.2f, %.2f, %.2f)" (vec:unpack)))
 
 (lambda format-hand [device-name]
         (let [hand (. store.input device-name)]
-          (string.format "%s {is: %s was: %s pos: %s contents: %s}"
+          (string.format "%s {is: %s was: %s stick: %s pos: %s contents: %s}"
                          device-name
                          hand.is-tracked
                          hand.was-tracked
+                         (format-vec2 hand.thumbstick)
                          (format-vec3 hand.position)
                          (not (not hand.contents)))))
 
@@ -65,7 +71,8 @@
     (when is-tracked
       (set device.was-tracked true)
       (device.position:set (lovr.headset.getPosition device-name)))
-    (update-grip-state device-name)))
+    (update-grip-state device-name)
+    (device.thumbstick:set (lovr.headset.getAxis device-name :thumbstick))))
 
 (fn update-grabbed-position [device-name]
   (let [device (. store.input device-name)]
