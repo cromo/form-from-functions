@@ -14,11 +14,11 @@
          {:hand/left {:was-tracked false
                       :is-tracked false
                       :position (lovr.math.newVec3)
-                      :grabbed nil}
+                      :contents nil}
           :hand/right {:was-tracked false
                        :is-tracked false
                        :position (lovr.math.newVec3)
-                       :grabbed nil}}
+                       :contents nil}}
          :logs ""
          :blocks [(new-block 0 1 -0.4)]
          :time {:frames-since-launch 0}
@@ -36,12 +36,12 @@
 
 (lambda format-hand [device-name]
         (let [hand (. store.input device-name)]
-          (string.format "%s {is: %s was: %s pos: %s grabbed: %s}"
+          (string.format "%s {is: %s was: %s pos: %s contents: %s}"
                          device-name
                          hand.is-tracked
                          hand.was-tracked
                          (format-vec3 hand.position)
-                         (not (not hand.grabbed)))))
+                         (not (not hand.contents)))))
 
 (fn update-grip-state [device-name]
   (let [hand (. store.input device-name)]
@@ -49,9 +49,9 @@
       (let [nearby-blocks (icollect [_ block (ipairs store.blocks)]
                                     (when (< (: (- hand.position block.position) :length) 0.1) block))
             nearest-block (. nearby-blocks 1)]
-        (set hand.grabbed nearest-block))) 
+        (set hand.contents nearest-block))) 
     (when (lovr.headset.wasReleased device-name :grip)
-      (tset store.input device-name :grabbed nil))))
+      (tset store.input device-name :contents nil))))
 
 (fn update-controller-state [device-name]
   (let [device (. store.input device-name)
@@ -65,7 +65,7 @@
 
 (fn update-grabbed-position [device-name]
   (let [device (. store.input device-name)]
-    (when device.grabbed (device.grabbed.position:set device.position))))
+    (when device.contents (device.contents.position:set device.position))))
 
 (fn lovr.load []
   (log :info :config (.. "Headset refresh rate: " store.config.headset.refresh-rate-hz)))
