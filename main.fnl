@@ -15,6 +15,14 @@
          :position (lovr.math.newVec3)
          :contents nil})
 
+(fn d-pad-was-pressed [device-name button]
+  (let [device (. store.input device-name)]
+    (and (. device.d-pad button) (not (. device.previous.d-pad button)))))
+
+(fn d-pad-was-released [device-name button]
+  (let [device (. store.input device-name)]
+    (and (not (. device.d-pad button)) (. device.previous.d-pad button))))
+
 (lambda new-block [x y z]
         {:position (lovr.math.newVec3 x y z)})
 
@@ -30,7 +38,7 @@
          {:headset {:refresh-rate-hz (lovr.headset.getDisplayFrequency)}}})
 
 (var text "")
-(local character-list "ABC")
+(local character-list " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~")
 (var current-character 1)
 
 (fn log [level tag message]
@@ -90,15 +98,13 @@
   (when (lovr.headset.wasPressed :hand/right :a)
     (set text (.. text (character-list:sub current-character current-character))))
   (when (lovr.headset.wasPressed :hand/right :b)
-    (set text (text:sub 1 -2))))
-
-(fn d-pad-was-pressed [device-name button]
-  (let [device (. store.input device-name)]
-    (and (. device.d-pad button) (not (. device.previous.d-pad button)))))
-
-(fn d-pad-was-released [device-name button]
-  (let [device (. store.input device-name)]
-    (and (not (. device.d-pad button)) (. device.previous.d-pad button))))
+    (set text (text:sub 1 -2)))
+  (when (d-pad-was-pressed :hand/left :down)
+    (log :debug :input (.. "current char " current-character "/" (length character-list)))
+    (set current-character (+ 1 (% current-character (length character-list)))))
+  (when (d-pad-was-pressed :hand/left :up)
+    (log :debug :input (.. "current char " current-character "/" (length character-list)))
+    (set current-character (+ 1 (% (- current-character 2) (length character-list))))))
 
 (fn lovr.load []
   (log :info :config (.. "Headset refresh rate: " store.config.headset.refresh-rate-hz)))
@@ -133,5 +139,4 @@
   (each [i block (ipairs store.blocks)]
         (lovr.graphics.box :line block.position 0.1 0.1 0.1))
   ; Draw text input
-  (lovr.graphics.print (.. text (character-list:sub 1 1)) 0 1 -0.5 0.05)
-  (lovr.graphics.print (tostring (select 2 (lovr.headset.getAxis :hand/left :thumbstick))) 0 0.9 -0.5 0.05))
+  (lovr.graphics.print (.. text (character-list:sub current-character current-character)) 0 1 -0.5 0.05))
