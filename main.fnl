@@ -12,6 +12,7 @@
          :thumbstick (lovr.math.newVec2)
          :d-pad {:up false :down false}
          :previous {:d-pad {:up  false :down false}}
+         :pressed {:up 0 :down 0}
          :position (lovr.math.newVec3)
          :contents nil})
 
@@ -91,7 +92,10 @@
     (update-grip-state device-name)
     (device.thumbstick:set (lovr.headset.getAxis device-name :thumbstick))
     (set device.d-pad.down (< device.thumbstick.y -0.6))
-    (set device.d-pad.up (< 0.6 device.thumbstick.y))))
+    (set device.d-pad.up (< 0.6 device.thumbstick.y))
+    (each [_ direction (ipairs device.pressed)]
+          (when (d-pad-was-pressed device-name direction)
+            (tset device.pressed direction store.elapsed.seconds)))))
 
 (fn update-grabbed-position [device-name]
   (let [device (. store.input device-name)]
