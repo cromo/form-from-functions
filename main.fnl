@@ -23,6 +23,9 @@
   (let [device (. store.input device-name)]
     (and (not (. device.d-pad button)) (. device.previous.d-pad button))))
 
+(fn wrap [index size]
+  (+ 1 (% (- index 1) size)))
+
 (lambda new-block [x y z]
         {:position (lovr.math.newVec3 x y z)})
 
@@ -101,10 +104,10 @@
     (set text (text:sub 1 -2)))
   (when (d-pad-was-pressed :hand/left :down)
     (log :debug :input (.. "current char " current-character "/" (length character-list)))
-    (set current-character (+ 1 (% current-character (length character-list)))))
+    (set current-character (wrap (+ 1 current-character) (length character-list))))
   (when (d-pad-was-pressed :hand/left :up)
     (log :debug :input (.. "current char " current-character "/" (length character-list)))
-    (set current-character (+ 1 (% (- current-character 2) (length character-list))))))
+    (set current-character (wrap (- current-character 1) (length character-list)))))
 
 (fn lovr.load []
   (log :info :config (.. "Headset refresh rate: " store.config.headset.refresh-rate-hz)))
