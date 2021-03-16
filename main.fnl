@@ -41,14 +41,15 @@
 
 (lambda new-block [x y z]
         {:position (lovr.math.newVec3 x y z)
-         :text "block"})
+         :text ""})
 
 (global store
         {:input
          {:hand/left (new-hand)
           :hand/right (new-hand)
           :text-index 1
-          :mode :text}
+          :mode :physical
+          :text-focus nil}
          :logs ""
          :blocks [(new-block 0 1 -0.4)]
          :elapsed {:frames 0 :seconds 0}
@@ -56,8 +57,6 @@
          {:headset {:refresh-rate-hz (lovr.headset.getDisplayFrequency)}
           :repeat {:delay 0.7 :hz 0.05}
           :character-list " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"}})
-
-(var text "")
 
 (fn log [level tag message]
   (set store.logs (.. store.logs "\n" level " " tag " " message)))
@@ -125,12 +124,12 @@
   (let [device (. store.input device-name)]
     (when device.contents (device.contents.position:set device.position))))
 
-(fn update-text-input []
+(fn update-text-input [container]
   (let [{: input :config {: character-list}} store] 
     (when (lovr.headset.wasPressed :hand/right :a)
-      (set text (.. text (character-list:sub input.text-index input.text-index)))) 
+      (set container.text (.. container.text (character-list:sub input.text-index input.text-index)))) 
     (when (lovr.headset.wasPressed :hand/right :b)
-      (set text (text:sub 1 -2))) 
+      (set container.text (container.text:sub 1 -2))) 
     (when (d-pad-was-pressed-or-repeated :hand/left :down)
       (set input.text-index (wrap (+ 1 input.text-index) (length character-list)))) 
     (when (d-pad-was-pressed-or-repeated :hand/left :up)
@@ -143,11 +142,21 @@
   (set store.elapsed.seconds (+ store.elapsed.seconds dt))
   (update-controller-state :hand/left)
   (update-controller-state :hand/right)
-  (when (lovr.headset.wasPressed :hand/left :x)
-    (add-block (new-block (lovr.headset.getPosition :hand/left))))
-  (update-grabbed-position :hand/left)
-  (update-grabbed-position :hand/right)
-  (update-text-input))
+  (when (lovr.headset.wasPressed :hand/left :y)
+    (if store.input.hand/left.contents
+      (do (set store.input.mode :textual)
+          (set store.input.text-focus store.input.hand/left.contents)
+          (set store.input.hand/left.contents nil))
+      store.input.text-focus
+      (do (set store.input.mode :physical)
+          (set store.input.text-focus nil))))
+  (when (= store.input.mode :physical)
+    (when (lovr.headset.wasPressed :hand/left :x)
+      (add-block (new-block (lovr.headset.getPosition :hand/left))))
+    (update-grabbed-position :hand/left)
+    (update-grabbed-position :hand/right))
+  (when (= store.input.mode :textual)
+    (update-text-input store.input.text-focus)))
 
 (fn lovr.draw []
   ; Update frame count
@@ -171,4 +180,4 @@
         (lovr.graphics.box :line block.position 0.1 0.1 0.1)
         (lovr.graphics.print block.text block.position 0.0254))
   ; Draw text input
-  (lovr.graphics.print (.. text (store.config.character-list:sub store.input.text-index store.input.text-index)) 0 1 -0.5 0.05))
+  (lovr.graphics.print (store.config.character-list:sub store.input.text-index store.input.text-index) 0 1 -0.5 0.05))
