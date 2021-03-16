@@ -46,17 +46,17 @@
         {:input
          {:hand/left (new-hand)
           :hand/right (new-hand)
+          :text-index 1
           :mode :text}
          :logs ""
          :blocks [(new-block 0 1 -0.4)]
          :elapsed {:frames 0 :seconds 0}
          :config
          {:headset {:refresh-rate-hz (lovr.headset.getDisplayFrequency)}
-          :repeat {:delay 0.7 :hz 0.05}}})
+          :repeat {:delay 0.7 :hz 0.05}
+          :character-list " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"}})
 
 (var text "")
-(local character-list " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~")
-(var current-character 1)
 
 (fn log [level tag message]
   (set store.logs (.. store.logs "\n" level " " tag " " message)))
@@ -125,14 +125,15 @@
     (when device.contents (device.contents.position:set device.position))))
 
 (fn update-text-input []
-  (when (lovr.headset.wasPressed :hand/right :a)
-    (set text (.. text (character-list:sub current-character current-character))))
-  (when (lovr.headset.wasPressed :hand/right :b)
-    (set text (text:sub 1 -2)))
-  (when (d-pad-was-pressed-or-repeated :hand/left :down)
-    (set current-character (wrap (+ 1 current-character) (length character-list))))
-  (when (d-pad-was-pressed-or-repeated :hand/left :up)
-    (set current-character (wrap (- current-character 1) (length character-list)))))
+  (let [{: input :config {: character-list}} store] 
+    (when (lovr.headset.wasPressed :hand/right :a)
+      (set text (.. text (character-list:sub input.text-index input.text-index)))) 
+    (when (lovr.headset.wasPressed :hand/right :b)
+      (set text (text:sub 1 -2))) 
+    (when (d-pad-was-pressed-or-repeated :hand/left :down)
+      (set input.text-index (wrap (+ 1 input.text-index) (length character-list)))) 
+    (when (d-pad-was-pressed-or-repeated :hand/left :up)
+      (set input.text-index (wrap (- input.text-index 1) (length character-list))))))
 
 (fn lovr.load []
   (log :info :config (.. "Headset refresh rate: " store.config.headset.refresh-rate-hz)))
@@ -155,7 +156,7 @@
   ; Draw hands
   (var hands-drawn 0)
   (lovr.graphics.print (.. (format-hand :hand/left) "\n    " (format-hand :hand/right)) -0.03 1.55 -2 0.1)
-  (each [hand {: was-tracked : is-tracked : position} (pairs store.input)]
+  (each [hand {: was-tracked : is-tracked : position} (pairs [:hand/left :hand/right])]
         (when was-tracked
           (if (not is-tracked) (lovr.graphics.setColor 0.2 0.2 0.2 0.8))
           (lovr.graphics.sphere position 0.03)
@@ -167,4 +168,4 @@
   (each [i block (ipairs store.blocks)]
         (lovr.graphics.box :line block.position 0.1 0.1 0.1))
   ; Draw text input
-  (lovr.graphics.print (.. text (character-list:sub current-character current-character)) 0 1 -0.5 0.05))
+  (lovr.graphics.print (.. text (store.config.character-list:sub store.input.text-index store.input.text-index)) 0 1 -0.5 0.05))
