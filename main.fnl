@@ -40,7 +40,8 @@
   (+ 1 (% (- index 1) size)))
 
 (lambda new-block [x y z]
-        {:position (lovr.math.newVec3 x y z)})
+        {:position (lovr.math.newVec3 x y z)
+         :text "block"})
 
 (global store
         {:input
@@ -166,6 +167,7 @@
   (lovr.graphics.print (.. "hands drawn: " hands-drawn) -0.1 1.7 -1 0.1)
   ; Draw blocks
   (each [i block (ipairs store.blocks)]
-        (lovr.graphics.box :line block.position 0.1 0.1 0.1))
+        (lovr.graphics.box :line block.position 0.1 0.1 0.1)
+        (lovr.graphics.print block.text block.position 0.0254))
   ; Draw text input
   (lovr.graphics.print (.. text (store.config.character-list:sub store.input.text-index store.input.text-index)) 0 1 -0.5 0.05))
