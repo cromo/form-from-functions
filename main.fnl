@@ -157,13 +157,14 @@
   ; Draw hands
   (var hands-drawn 0)
   (lovr.graphics.print (.. (format-hand :hand/left) "\n    " (format-hand :hand/right)) -0.03 1.55 -2 0.1)
-  (each [hand {: was-tracked : is-tracked : position} (pairs [:hand/left :hand/right])]
-        (when was-tracked
-          (if (not is-tracked) (lovr.graphics.setColor 0.2 0.2 0.2 0.8))
-          (lovr.graphics.sphere position 0.03)
-          (lovr.graphics.print hand position 0.1)
-          (if (not is-tracked) (lovr.graphics.setColor 1 1 1))
-          (set hands-drawn (+ 1 hands-drawn))))
+  (each [_ hand (pairs [:hand/left :hand/right])]
+        (let [{: was-tracked : is-tracked : position} (. store.input hand)] 
+          (when was-tracked
+            (if (not is-tracked) (lovr.graphics.setColor 0.2 0.2 0.2 0.8))
+            (lovr.graphics.sphere position 0.03)
+            (lovr.graphics.print hand position 0.1)
+            (if (not is-tracked) (lovr.graphics.setColor 1 1 1))
+            (set hands-drawn (+ 1 hands-drawn)))))
   (lovr.graphics.print (.. "hands drawn: " hands-drawn) -0.1 1.7 -1 0.1)
   ; Draw blocks
   (each [i block (ipairs store.blocks)]
