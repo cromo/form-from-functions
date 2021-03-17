@@ -1,5 +1,3 @@
-(local T (require :third-party/knife-test))
-
 (T "Given a value of 1"
    (fn [T]
      (var value 1)
