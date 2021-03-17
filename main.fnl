@@ -156,6 +156,14 @@
       (add-block (new-block (lovr.headset.getPosition :hand/left))))
     (update-grabbed-position :hand/left)
     (update-grabbed-position :hand/right))
+  ; Process linking blocks
+  (when (and (or (lovr.headset.wasPressed :hand/left :trigger)
+                 (lovr.headset.wasPressed :hand/right :trigger))
+             store.input.hand/left.contents
+             store.input.hand/right.contents)
+    (if store.input.hand/left.contents.next
+      (set store.input.hand/left.contents.next nil)
+      (set store.input.hand/left.contents.next store.input.hand/right.contents)))
   (when (= store.input.mode :textual)
     (update-text-input store.input.text-focus)))
 
@@ -179,6 +187,7 @@
   ; Draw blocks
   (each [i block (ipairs store.blocks)]
         (lovr.graphics.box :line block.position 0.1 0.1 0.1)
-        (lovr.graphics.print block.text block.position 0.0254))
+        (lovr.graphics.print block.text block.position 0.0254)
+        (when block.next (lovr.graphics.line block.position block.next.position)))
   ; Draw text input
   (lovr.graphics.print (store.config.character-list:sub store.input.text-index store.input.text-index) 0 1 -0.5 0.05))
