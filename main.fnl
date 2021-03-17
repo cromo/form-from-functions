@@ -135,6 +135,14 @@
     (when (d-pad-was-pressed-or-repeated :hand/left :up)
       (set input.text-index (wrap (- input.text-index 1) (length character-list))))))
 
+(fn generate-code [blocks]
+  (let [tokens {}]
+    (fn gather-next [block]
+      (table.insert tokens block.text)
+      (if block.next (gather-next block.next)))
+    (gather-next (. blocks 1))
+    (table.concat tokens " ")))
+
 (fn lovr.load []
   (log :info :config (.. "Headset refresh rate: " store.config.headset.refresh-rate-hz))
   (log :info :config (.. "Save directory: " (lovr.filesystem.getSaveDirectory))))
@@ -152,6 +160,8 @@
       (do (set store.input.mode :physical)
           (set store.input.text-focus nil))))
   (when (= store.input.mode :physical)
+    (when (lovr.headset.wasPressed :hand/right :a)
+      (log :debug :codegen (generate-code store.blocks)))
     (when (lovr.headset.wasPressed :hand/left :x)
       (add-block (new-block (lovr.headset.getPosition :hand/left))))
     (update-grabbed-position :hand/left)
