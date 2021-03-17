@@ -136,7 +136,8 @@
       (set input.text-index (wrap (- input.text-index 1) (length character-list))))))
 
 (fn lovr.load []
-  (log :info :config (.. "Headset refresh rate: " store.config.headset.refresh-rate-hz)))
+  (log :info :config (.. "Headset refresh rate: " store.config.headset.refresh-rate-hz))
+  (log :info :config (.. "Save directory: " (lovr.filesystem.getSaveDirectory))))
 
 (fn lovr.update [dt]
   (set store.elapsed.seconds (+ store.elapsed.seconds dt))
