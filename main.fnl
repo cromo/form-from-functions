@@ -6,6 +6,8 @@
 ; - Some form of typing (maybe using pre-made labels for known values or a simple floating keyboard?)
 ; - A variable dictionary, potentially using generated names/colors
 
+(local fennel (require :third-party/fennel))
+
 (lambda new-hand []
         {:was-tracked false
          :is-tracked false
@@ -161,7 +163,8 @@
           (set store.input.text-focus nil))))
   (when (= store.input.mode :physical)
     (when (lovr.headset.wasPressed :hand/right :a)
-      (log :debug :codegen (generate-code store.blocks)))
+      (log :debug :codegen (generate-code store.blocks))
+      (fennel.eval (generate-code store.blocks)))
     (when (lovr.headset.wasPressed :hand/left :x)
       (add-block (new-block (lovr.headset.getPosition :hand/left))))
     (update-grabbed-position :hand/left)
