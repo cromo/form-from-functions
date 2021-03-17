@@ -1,7 +1,8 @@
 SRC = $(wildcard *.fnl)
 LUA_OUT = $(SRC:.fnl=.lua)
+TEST = $(wildcard test/*.fnl)
 
-.PHONY: all clean
+.PHONY: all clean test
 
 all: $(LUA_OUT)
 
@@ -10,3 +11,6 @@ all: $(LUA_OUT)
 
 clean:
 	rm -f $(LUA_OUT)
+
+test:
+	./fennel.exe third-party/knife-test.fnl $(TEST)
