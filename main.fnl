@@ -7,6 +7,7 @@
 ; - A variable dictionary, potentially using generated names/colors
 
 (local fennel (require :third-party/fennel))
+(local {: wrap} (require :lib/math))
 
 (lambda new-hand []
         {:was-tracked false
@@ -37,9 +38,6 @@
 (fn d-pad-was-released [device-name button]
   (let [device (. store.input device-name)]
     (and (not (. device.d-pad button)) (. device.previous.d-pad button))))
-
-(fn wrap [index size]
-  (+ 1 (% (- index 1) size)))
 
 (lambda new-block [x y z]
         {:position (lovr.math.newVec3 x y z)
