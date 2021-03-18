@@ -1,4 +1,4 @@
-SRC = $(wildcard *.fnl)
+SRC = $(wildcard *.fnl) $(wildcard lib/*.fnl) $(wildcard src/*.fnl)
 LUA_OUT = $(SRC:.fnl=.lua)
 TEST = $(wildcard test/*.fnl)
 
