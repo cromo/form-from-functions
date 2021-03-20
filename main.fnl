@@ -8,6 +8,8 @@
 
 (local fennel (require :third-party/fennel))
 (local {: wrap} (require :lib/math))
+(local {: new-block
+        : add-block} (require :lib/block))
 
 (lambda new-hand []
         {:was-tracked false
@@ -39,10 +41,6 @@
   (let [device (. store.input device-name)]
     (and (not (. device.d-pad button)) (. device.previous.d-pad button))))
 
-(lambda new-block [x y z]
-        {:position (lovr.math.newVec3 x y z)
-         :text ""})
-
 (global store
         {:input
          {:hand/left (new-hand)
@@ -60,9 +58,6 @@
 
 (fn log [level tag message]
   (set store.logs (.. store.logs "\n" level " " tag " " message)))
-
-(lambda add-block [block]
-        (table.insert store.blocks block))
 
 (lambda format-vec2 [vec]
         (string.format "(vec2 %.2f, %.2f)" (vec:unpack)))
