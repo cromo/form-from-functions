@@ -1,5 +1,8 @@
 (local logging {})
 
+(fn logging.new-log []
+  "")
+
 (fn logging.log [level tag message]
   (set store.logs (.. store.logs "\n" level " " tag " " message)))
 

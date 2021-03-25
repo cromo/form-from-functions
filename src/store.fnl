@@ -1,5 +1,6 @@
 (local {: new-block} (require :lib/block))
 (local {: new-hand} (require :lib/hand))
+(local {: new-log} (require :lib/logging))
 
 ;; TODO(cromo): Make this less global. It would be better for parts of this tree
 ;; to be injected into the code that needs it and needs to modify it instead of
@@ -11,7 +12,7 @@
           :text-index 1
           :mode :physical
           :text-focus nil}
-         :logs ""
+         :logs (new-log)
          :blocks [(new-block 0 1 -0.4)]
          :elapsed {:frames 0 :seconds 0}
          :config
