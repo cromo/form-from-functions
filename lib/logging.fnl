@@ -1,12 +1,28 @@
 (local logging {})
 
 (fn logging.new-log []
-  "")
+  {})
 
 (fn logging.log [level tag message]
-  (set store.logs (.. store.logs "\n" level " " tag " " message)))
+  (table.insert store.logs {: level : tag : message}))
+
+(fn format-log [{: level : tag : message}]
+  (.. level " " tag " " message))
 
 (fn logging.draw-logs [logs]
-  (lovr.graphics.print logs 0 1.7 -3 0.1 0 0 1 0 0 :center :bottom))
+  (var offset 0)
+  (local font (lovr.graphics.getFont))
+  (for [i (length logs) 1 -1]
+    (let [log-entry (. logs i)
+          log (format-log log-entry)
+          (_ lines) (font:getWidth log)]
+      (lovr.graphics.print
+       log
+       0 (+ 1.7 offset) -3
+       0.1
+       0
+       0 1 0 0
+       :center :bottom)
+      (set offset (+ offset (* 0.1 lines))))))
 
 logging
