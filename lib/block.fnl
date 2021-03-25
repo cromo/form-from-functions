@@ -2,6 +2,7 @@
 
 (lambda block.new-block [x y z]
         {:position (lovr.math.newVec3 x y z)
+         :rotation (lovr.math.newQuat)
          :text ""})
 
 (lambda block.add-block [block]
@@ -12,8 +13,8 @@
         (unscaled-width) (font:getWidth block.text)
         inch 0.0254
         width (* inch unscaled-width)]
-    (lovr.graphics.box :line block.position (+ 0.1 width) 0.1 0.1)
-    (lovr.graphics.print block.text block.position inch)
+    (lovr.graphics.box :line block.position (+ 0.1 width) 0.1 0.1 block.rotation)
+    (lovr.graphics.print block.text block.position inch block.rotation)
     (when block.next
       (let [next block.next
             (next-unscaled-width) (font:getWidth next.text)

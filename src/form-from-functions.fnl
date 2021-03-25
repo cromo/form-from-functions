@@ -16,7 +16,9 @@
 
 (fn update-grabbed-position [device-name]
   (let [device (. store.input device-name)]
-    (when device.contents (device.contents.position:set device.position))))
+    (when device.contents
+      (device.contents.position:set device.position)
+      (device.contents.rotation:set device.rotation))))
 
 (fn form-from-functions.load []
   (log :info :config (.. "Headset refresh rate: " store.config.headset.refresh-rate-hz))

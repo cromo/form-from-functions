@@ -41,7 +41,8 @@
     (set device.is-tracked is-tracked)
     (when is-tracked
       (set device.was-tracked true)
-      (device.position:set (lovr.headset.getPosition device-name)))
+      (device.position:set (lovr.headset.getPosition device-name))
+      (device.rotation:set (lovr.headset.getOrientation device-name)))
     ; Process grabbing things
     (update-grip-state device-name)
     ; Process thumbsticks and virtual d-pad

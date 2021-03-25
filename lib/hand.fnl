@@ -14,6 +14,7 @@
          :next-repeat {:up -1 :down -1}
          :repeated {:up false :down false}
          :position (lovr.math.newVec3)
+         :rotation (lovr.math.newQuat)
          :contents nil})
 
 (lambda hand.format-hand [device-name]
