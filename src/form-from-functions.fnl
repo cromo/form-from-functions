@@ -1,6 +1,6 @@
 (local fennel (require :third-party/fennel))
 
-(local {: update-text-input} (require :lib/arcade-text-input))
+(local {: update-text-input : draw-text-input} (require :lib/arcade-text-input))
 (local {: new-block
         : add-block
         : draw-block} (require :lib/block))
@@ -65,6 +65,6 @@
   (each [i block (ipairs store.blocks)]
         (draw-block block))
   ; Draw text input
-  (lovr.graphics.print (store.config.character-list:sub store.input.text-index store.input.text-index) 0 1 -0.5 0.05))
+  (draw-text-input))
 
 form-from-functions

@@ -14,4 +14,7 @@
     (when (d-pad-was-pressed-or-repeated :hand/left :up)
       (set input.text-index (wrap (- input.text-index 1) (length character-list))))))
 
+(fn arcade-text-input.draw-text-input []
+  (lovr.graphics.print (store.config.character-list:sub store.input.text-index store.input.text-index) 0 1 -0.5 0.05))
+
 arcade-text-input
