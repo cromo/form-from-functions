@@ -8,9 +8,18 @@
         (table.insert store.blocks block))
 
 (fn block.draw-block [block]
-  (let [(width) (: (lovr.graphics.getFont) :getWidth block.text)]
-    (lovr.graphics.box :line block.position (+ 0.1 (* 0.0254 width)) 0.1 0.1))
-  (lovr.graphics.print block.text block.position 0.0254)
-  (when block.next (lovr.graphics.line block.position block.next.position)))
+  (let [font (lovr.graphics.getFont)
+        (unscaled-width) (font:getWidth block.text)
+        inch 0.0254
+        width (* inch unscaled-width)]
+    (lovr.graphics.box :line block.position (+ 0.1 width) 0.1 0.1)
+    (lovr.graphics.print block.text block.position inch)
+    (when block.next
+      (let [next block.next
+            (next-unscaled-width) (font:getWidth next.text)
+            next-width (* inch next-unscaled-width)]
+        (lovr.graphics.line
+         (+ block.position (vec3 (* 0.5 (+ 0.1 width)) 0 0))
+         (- next.position (vec3 (* 0.5 (+ 0.1 next-width)) 0 0)))))))
 
 block
