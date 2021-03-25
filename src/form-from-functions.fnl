@@ -54,18 +54,13 @@
     (update-text-input store.input.text-focus)))
 
 (fn form-from-functions.draw []
-  ; Update frame count
   (elapsed-time.add-frame)
-  ; Draw logs
   (draw-logs store.logs)
-  ; Draw hands
   (lovr.graphics.print (.. (format-hand :hand/left) "\n    " (format-hand :hand/right)) -0.03 1.55 -2 0.1)
   (each [_ hand (pairs [:hand/left :hand/right])]
         (draw-hand (. store.input hand)))
-  ; Draw blocks
   (each [i block (ipairs store.blocks)]
         (draw-block block))
-  ; Draw text input
   (draw-text-input))
 
 form-from-functions
