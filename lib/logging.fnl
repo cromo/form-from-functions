@@ -4,7 +4,11 @@
   {})
 
 (fn logging.log [level tag message]
-  (table.insert store.logs {: level : tag : message}))
+  (table.insert store.logs {: level : tag : message})
+  ;; There's definitely room for optimization here (e.g. circular buffers), but
+  ;; working first, fast later.
+  (when (< 100 (length store.logs))
+    (table.remove store.logs 1)))
 
 (fn format-log [{: level : tag : message}]
   (.. level " " tag " " message))
