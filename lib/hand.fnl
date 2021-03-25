@@ -30,4 +30,10 @@
                          (format-vec3 hand.position)
                          (not (not hand.contents)))))
 
+(fn hand.draw-hand [{: was-tracked : is-tracked : position}]
+  (when was-tracked
+    (if (not is-tracked) (lovr.graphics.setColor 0.2 0.2 0.2 0.8))
+    (lovr.graphics.sphere position 0.03)
+    (if (not is-tracked) (lovr.graphics.setColor 1 1 1))))
+
 hand
