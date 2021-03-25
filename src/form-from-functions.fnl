@@ -5,6 +5,7 @@
         : add-block
         : draw-block} (require :lib/block))
 (local {: generate-code} (require :lib/code-gen))
+(local elapsed-time (require :lib/elapsed-time))
 (local {: format-hand : draw-hand} (require :lib/hand))
 (local {: update-controller-state} (require :lib/input))
 (local {: log : draw-logs} (require :lib/logging))
@@ -22,7 +23,7 @@
   (log :info :config (.. "Save directory: " (lovr.filesystem.getSaveDirectory))))
 
 (fn form-from-functions.update [dt]
-  (set store.elapsed.seconds (+ store.elapsed.seconds dt))
+  (elapsed-time.add-seconds dt)
   (update-controller-state :hand/left)
   (update-controller-state :hand/right)
   (when (lovr.headset.wasPressed :hand/left :y)
@@ -54,7 +55,7 @@
 
 (fn form-from-functions.draw []
   ; Update frame count
-  (set store.elapsed.frames (+ 1 store.elapsed.frames))
+  (elapsed-time.add-frame)
   ; Draw logs
   (draw-logs store.logs)
   ; Draw hands
