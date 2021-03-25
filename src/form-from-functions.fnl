@@ -7,7 +7,7 @@
 (local {: generate-code} (require :lib/code-gen))
 (local {: format-hand : draw-hand} (require :lib/hand))
 (local {: update-controller-state} (require :lib/input))
-(local {: log} (require :lib/logging))
+(local {: log : draw-logs} (require :lib/logging))
 
 (require :src/store)
 
@@ -56,7 +56,7 @@
   ; Update frame count
   (set store.elapsed.frames (+ 1 store.elapsed.frames))
   ; Draw logs
-  (lovr.graphics.print store.logs 0 1.5 -3 0.1 0 0 1 0 0 :center :top)
+  (draw-logs store.logs)
   ; Draw hands
   (lovr.graphics.print (.. (format-hand :hand/left) "\n    " (format-hand :hand/right)) -0.03 1.55 -2 0.1)
   (each [_ hand (pairs [:hand/left :hand/right])]
