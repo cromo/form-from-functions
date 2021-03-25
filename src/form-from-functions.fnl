@@ -2,7 +2,8 @@
 
 (local {: update-text-input} (require :lib/arcade-text-input))
 (local {: new-block
-        : add-block} (require :lib/block))
+        : add-block
+        : draw-block} (require :lib/block))
 (local {: generate-code} (require :lib/code-gen))
 (local {: format-hand : draw-hand} (require :lib/hand))
 (local {: update-controller-state} (require :lib/input))
@@ -62,9 +63,7 @@
         (draw-hand (. store.input hand)))
   ; Draw blocks
   (each [i block (ipairs store.blocks)]
-        (lovr.graphics.box :line block.position 0.1 0.1 0.1)
-        (lovr.graphics.print block.text block.position 0.0254)
-        (when block.next (lovr.graphics.line block.position block.next.position)))
+        (draw-block block))
   ; Draw text input
   (lovr.graphics.print (store.config.character-list:sub store.input.text-index store.input.text-index) 0 1 -0.5 0.05))
 
