@@ -3,7 +3,9 @@
 (local {: update-text-input : draw-text-input} (require :lib/arcade-text-input))
 (local {: new-block
         : add-block
-        : draw-block} (require :lib/block))
+        : draw-block
+        : serialize-blocks
+        : deserialize-blocks} (require :lib/block))
 (local {: generate-code} (require :lib/code-gen))
 (local elapsed-time (require :lib/elapsed-time))
 (local {: format-hand : draw-hand} (require :lib/hand))
@@ -22,7 +24,9 @@
 
 (fn form-from-functions.load []
   (log :info :config (.. "Headset refresh rate: " store.config.headset.refresh-rate-hz))
-  (log :info :config (.. "Save directory: " (lovr.filesystem.getSaveDirectory))))
+  (log :info :config (.. "Save directory: " (lovr.filesystem.getSaveDirectory)))
+  (when (lovr.filesystem.isFile :blocks.json)
+    (set store.blocks (deserialize-blocks (lovr.filesystem.read :blocks.json)))))
 
 (fn form-from-functions.update [dt]
   (elapsed-time.add-seconds dt)
@@ -43,6 +47,10 @@
        (fn [] (fennel.eval (generate-code store.blocks)))
        (fn [error]
          (log :error :codegen error))))
+    (when (lovr.headset.wasPressed :hand/right :b)
+      (let [serialized-blocks (serialize-blocks store.blocks)]
+        (log :debug :persistence serialized-blocks)
+        (lovr.filesystem.write "blocks.json" serialized-blocks)))
     (when (lovr.headset.wasPressed :hand/left :x)
       (add-block (new-block (lovr.headset.getPosition :hand/left))))
     (update-grabbed-position :hand/left)
