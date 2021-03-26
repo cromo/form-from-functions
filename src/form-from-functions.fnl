@@ -39,7 +39,10 @@
   (when (= store.input.mode :physical)
     (when (lovr.headset.wasPressed :hand/right :a)
       (log :debug :codegen (generate-code store.blocks))
-      (fennel.eval (generate-code store.blocks)))
+      (xpcall
+       (fn [] (fennel.eval (generate-code store.blocks)))
+       (fn [error]
+         (log :error :codegen error))))
     (when (lovr.headset.wasPressed :hand/left :x)
       (add-block (new-block (lovr.headset.getPosition :hand/left))))
     (update-grabbed-position :hand/left)
