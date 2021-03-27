@@ -1,6 +1,6 @@
 (local fennel (require :third-party/fennel))
 
-(local {: update-text-input : draw-text-input} (require :lib/arcade-text-input))
+(local {: update-text-input : draw-text-input} (require :lib/disk-text-input))
 (local {: new-block
         : add-block
         : draw-block

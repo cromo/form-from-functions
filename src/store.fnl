@@ -1,4 +1,4 @@
-(local {: new-text-input} (require :lib/arcade-text-input))
+(local {: new-text-input} (require :lib/disk-text-input))
 (local {: new-block} (require :lib/block))
 (local {: new-hand} (require :lib/hand))
 (local {: new-log} (require :lib/logging))
