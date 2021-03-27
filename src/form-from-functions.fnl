@@ -1,6 +1,6 @@
 (local fennel (require :third-party/fennel))
 
-(local {: update-text-input : draw-text-input} (require :lib/disk-text-input))
+(local text-input (require :lib/disk-text-input))
 (local {: new-block
         : add-block
         : draw-block
@@ -64,7 +64,7 @@
       (set store.input.hand/left.contents.next nil)
       (set store.input.hand/left.contents.next store.input.hand/right.contents)))
   (when (= store.input.mode :textual)
-    (update-text-input store.text-input store.input.text-focus)))
+    (text-input.update store.text-input store.input.text-focus)))
 
 (fn form-from-functions.draw []
   (elapsed-time.add-frame)
@@ -74,6 +74,6 @@
         (draw-hand (. store.input hand)))
   (each [i block (ipairs store.blocks)]
         (draw-block block))
-  (draw-text-input store.text-input))
+  (text-input.draw store.text-input))
 
 form-from-functions

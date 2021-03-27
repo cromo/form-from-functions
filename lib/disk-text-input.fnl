@@ -7,11 +7,11 @@
                          "1234567890-=.,;/'\\[]`"
                          "!@#$%^&*()_+<>:?\"|{}~"])
 
-(fn disk-text-input.new-text-input []
+(fn disk-text-input.init []
   {:selected-character " "
    :layer 1})
 
-(fn disk-text-input.update-text-input [state container]
+(fn disk-text-input.update [state container]
   (let [(x y) (lovr.headset.getAxis :hand/left :thumbstick)
         centered? (and (< -0.001 x 0.001) (< -0.001 y 0.001))
         angle-radians (+ math.pi (math.atan2 y x))
@@ -28,7 +28,7 @@
   (when (lovr.headset.wasPressed :hand/left :thumbstick)
     (set state.layer (wrap (+ 1 state.layer) (length character-layers)))))
 
-(fn disk-text-input.draw-text-input [state]
+(fn disk-text-input.draw [state]
   (lovr.graphics.print state.selected-character 0 1 -0.5 0.05))
 
 disk-text-input
