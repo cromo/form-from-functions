@@ -17,5 +17,4 @@
          :elapsed {:frames 0 :seconds 0}
          :config
          {:headset {:refresh-rate-hz (lovr.headset.getDisplayFrequency)}
-          :repeat {:delay 0.7 :hz 0.05}
-          :character-list " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"}})
+          :repeat {:delay 0.7 :hz 0.05}}})
