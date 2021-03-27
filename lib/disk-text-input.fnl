@@ -2,10 +2,10 @@
 
 (local disk-text-input {})
 
-(local character-list " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~")
-
-(local character-layers ["abcdefghijklmnopqrstuvwxyz1234567890-=.,;/'\\[]`"
-                         "ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()_+<>:?\"|{}~"])
+(local character-layers ["abcdefghijklmnopqrstuvwxyz"
+                         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                         "1234567890-=.,;/'\\[]`"
+                         "!@#$%^&*()_+<>:?\"|{}~"])
 
 (fn disk-text-input.new-text-input []
   {:selected-character " "
