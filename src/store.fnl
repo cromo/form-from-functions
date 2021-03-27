@@ -1,3 +1,4 @@
+(local {: new-text-input} (require :lib/arcade-text-input))
 (local {: new-block} (require :lib/block))
 (local {: new-hand} (require :lib/hand))
 (local {: new-log} (require :lib/logging))
@@ -9,11 +10,11 @@
         {:input
          {:hand/left (new-hand)
           :hand/right (new-hand)
-          :text-index 1
           :mode :physical
           :text-focus nil}
          :logs (new-log)
          :blocks [(new-block 0 1 -0.4)]
+         :text-input (new-text-input)
          :elapsed {:frames 0 :seconds 0}
          :config
          {:headset {:refresh-rate-hz (lovr.headset.getDisplayFrequency)}

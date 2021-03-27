@@ -5,18 +5,21 @@
 
 (local character-list " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~")
 
-(fn arcade-text-input.update-text-input [container]
+(fn arcade-text-input.new-text-input []
+  {:text-index 1})
+
+(fn arcade-text-input.update-text-input [state container]
   (let [{: input} store] 
     (when (lovr.headset.wasPressed :hand/right :a)
-      (set container.text (.. container.text (character-list:sub input.text-index input.text-index)))) 
+      (set container.text (.. container.text (character-list:sub state.text-index state.text-index)))) 
     (when (lovr.headset.wasPressed :hand/right :b)
       (set container.text (container.text:sub 1 -2))) 
     (when (d-pad-was-pressed-or-repeated :hand/left :down)
-      (set input.text-index (wrap (+ 1 input.text-index) (length character-list)))) 
+      (set state.text-index (wrap (+ 1 state.text-index) (length character-list)))) 
     (when (d-pad-was-pressed-or-repeated :hand/left :up)
-      (set input.text-index (wrap (- input.text-index 1) (length character-list))))))
+      (set state.text-index (wrap (- state.text-index 1) (length character-list))))))
 
-(fn arcade-text-input.draw-text-input []
-  (lovr.graphics.print (character-list:sub store.input.text-index store.input.text-index) 0 1 -0.5 0.05))
+(fn arcade-text-input.draw-text-input [state]
+  (lovr.graphics.print (character-list:sub state.text-index state.text-index) 0 1 -0.5 0.05))
 
 arcade-text-input
