@@ -1,4 +1,5 @@
 (local {:init text-input} (require :lib/disk-text-input))
+(local {:init elapsed-time} (require :lib/elapsed-time))
 (local {: new-block} (require :lib/block))
 (local {: new-hand} (require :lib/hand))
 (local {: new-log} (require :lib/logging))
@@ -15,7 +16,7 @@
          :logs (new-log)
          :blocks [(new-block 0 1 -0.4)]
          :text-input (text-input)
-         :elapsed {:frames 0 :seconds 0}
+         :elapsed (elapsed-time)
          :config
          {:headset {:refresh-rate-hz (lovr.headset.getDisplayFrequency)}
           :repeat {:delay 0.7 :hz 0.05}}})

@@ -29,7 +29,7 @@
     (set store.blocks (deserialize-blocks (lovr.filesystem.read :blocks.json)))))
 
 (fn form-from-functions.update [dt]
-  (elapsed-time.add-seconds dt)
+  (elapsed-time.update store.elapsed dt)
   (update-controller-state :hand/left)
   (update-controller-state :hand/right)
   (when (lovr.headset.wasPressed :hand/left :y)
@@ -67,7 +67,7 @@
     (text-input.update store.text-input store.input.text-focus)))
 
 (fn form-from-functions.draw []
-  (elapsed-time.add-frame)
+  (elapsed-time.draw store.elapsed)
   (draw-logs store.logs)
   (lovr.graphics.print (.. (format-hand :hand/left) "\n    " (format-hand :hand/right)) -0.03 1.3 -2 0.1)
   (each [_ hand (pairs [:hand/left :hand/right])]
