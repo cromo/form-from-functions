@@ -1,5 +1,6 @@
 ;; Breakers protect the calling layers in the case that the wrapped layer (the
-;; circuit) errors.
+;; circuit) errors. It does so by catching the error and marking the code as no
+;; longer running so that it doesn't call its callbacks anymore.
 (local breaker {})
 
 (fn breaker.init [circuit on-fault ...]
