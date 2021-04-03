@@ -1,6 +1,7 @@
 (local fennel (require :third-party/fennel))
 
-(local text-input (require :lib/disk-text-input))
+(local logging-breaker (require :lib/logging-breaker))
+(local disk-text-input (require :lib/disk-text-input))
 (local {: new-block
         : add-block
         : draw-block
@@ -15,6 +16,8 @@
 (require :src/store)
 
 (local form-from-functions {})
+
+(local text-input (logging-breaker.init disk-text-input))
 
 (fn update-grabbed-position [device-name]
   (let [device (. store.input device-name)]
@@ -64,7 +67,7 @@
       (set store.input.hand/left.contents.next nil)
       (set store.input.hand/left.contents.next store.input.hand/right.contents)))
   (when (= store.input.mode :textual)
-    (text-input.update store.text-input store.input.text-focus)))
+    (logging-breaker.update text-input store.input.text-focus)))
 
 (fn form-from-functions.draw []
   (elapsed-time.draw store.elapsed)
@@ -74,6 +77,6 @@
         (draw-hand (. store.input hand)))
   (each [i block (ipairs store.blocks)]
         (draw-block block))
-  (text-input.draw store.text-input))
+  (logging-breaker.draw text-input))
 
 form-from-functions

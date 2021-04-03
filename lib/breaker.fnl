@@ -9,14 +9,14 @@
    :running true
    : on-fault})
 
-(fn fault [breaker]
+(fn fault [breaker error-message]
   (set breaker.running false)
-  (when breaker.on-fault (breaker.on-fault)))
+  (when breaker.on-fault (breaker.on-fault error-message)))
 
 (fn call-through [breaker callback-name ...]
   (when breaker.running
     (xpcall (. breaker.circuit-callbacks callback-name)
-            #(fault breaker)
+            #(fault breaker $1)
             breaker.circuit-state
             ...)))
 
