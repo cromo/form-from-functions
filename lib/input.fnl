@@ -20,20 +20,12 @@
   (let [device (. store.input device-name)]
     (and (not (. device.d-pad button)) (. device.previous.d-pad button))))
 
-(fn input.update-controller-state [device-name]
-  (let [device (. store.input device-name)
-        is-tracked (lovr.headset.isTracked device-name)]
+(fn input.update-virtual-d-pad [device-name]
+  (let [device (. store.input device-name)]
     ; Save off previous virtual d-pad state
     (each [key-name is-pressed (pairs device.d-pad)]
           (tset device.previous.d-pad key-name is-pressed))
-    ; Update tracking state and position
-    (set device.is-tracked is-tracked)
-    (when is-tracked
-      (set device.was-tracked true)
-      (device.position:set (lovr.headset.getPosition device-name))
-      (device.rotation:set (lovr.headset.getOrientation device-name)))
     ; Process thumbsticks and virtual d-pad
-    (device.thumbstick:set (lovr.headset.getAxis device-name :thumbstick))
     (set device.d-pad.down (< device.thumbstick.y -0.6))
     (set device.d-pad.up (< 0.6 device.thumbstick.y))
     (each [direction _ (pairs device.pressed)]

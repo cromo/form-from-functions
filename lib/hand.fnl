@@ -1,4 +1,3 @@
-(local {: update-controller-state} (require :lib/input))
 (local {: format-vec2
         : format-vec3}
        (require :lib/math))
@@ -32,11 +31,22 @@
                        (format-vec3 hand.position)
                        (not (not hand.contents))))
 
+(fn update-tracking [self]
+  (let [is-tracked (lovr.headset.isTracked self.name)]
+    (set self.is-tracked is-tracked)
+    (when is-tracked
+      (set self.was-tracked true)
+      (self.position:set (lovr.headset.getPosition self.name))
+      (self.rotation:set (lovr.headset.getOrientation self.name)))))
+
+(fn update-contents-pose [self]
+  (self.contents.position:set self.position)
+  (self.contents.rotation:set self.rotation))
+
 (fn hand.update [self]
-  (update-controller-state self.name)
-  (when self.contents
-    (self.contents.position:set self.position)
-    (self.contents.rotation:set self.rotation)))
+  (update-tracking self)
+  (self.thumbstick:set (lovr.headset.getAxis self.name :thumbstick))
+  (when self.contents (update-contents-pose self)))
 
 (fn hand.draw [{: was-tracked : is-tracked : position}]
   (when was-tracked

@@ -6,6 +6,7 @@
 (local blocks (require :lib/blocks))
 (local {: generate-code} (require :lib/code-gen))
 (local elapsed-time (require :lib/elapsed-time))
+(local {: update-virtual-d-pad} (require :lib/input))
 (local hand (require :lib/hand))
 (local log (require :lib/logging))
 
@@ -66,6 +67,8 @@
   (elapsed-time.update store.elapsed dt)
   (hand.update store.input.hand/left)
   (hand.update store.input.hand/right)
+  (update-virtual-d-pad :hand/left)
+  (update-virtual-d-pad :hand/right)
   (set store.input.mode
        (match store.input.mode
          :physical (physical-update dt)
