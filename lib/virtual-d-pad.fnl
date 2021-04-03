@@ -10,7 +10,6 @@
   {:name device-name
    :d-pad {:up false :down false}
    :previous {:up  false :down false}
-   :pressed {:up 0 :down 0}
    :next-repeat {:up -1 :down -1}
    :repeated {:up false :down false}})
 
@@ -40,7 +39,6 @@
   (each [direction _ (pairs self.d-pad)]
         (tset self.repeated direction false)
         (when (d-pad-was-pressed self direction)
-          (tset self.pressed direction store.elapsed.seconds)
           (tset self.next-repeat direction (+ store.elapsed.seconds repeat-delay-seconds)))
         (when (and (d-pad-is-down self direction) (< (. self.next-repeat direction) store.elapsed.seconds))
           (tset self.repeated direction true)
