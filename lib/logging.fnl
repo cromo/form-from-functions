@@ -19,7 +19,7 @@
 (fn format-log [{: level : tag : message}]
   (.. level " " tag " " message))
 
-(fn logging.draw-logs [logs]
+(fn logging.draw [logs]
   (var offset 0)
   (local font (lovr.graphics.getFont))
   (for [i (length logs) 1 -1]

@@ -11,7 +11,7 @@
 (local elapsed-time (require :lib/elapsed-time))
 (local {: format-hand : draw-hand} (require :lib/hand))
 (local {: update-controller-state} (require :lib/input))
-(local {: log : draw-logs} (require :lib/logging))
+(local log (require :lib/logging))
 
 (require :src/store)
 
@@ -26,8 +26,8 @@
       (device.contents.rotation:set device.rotation))))
 
 (fn form-from-functions.load []
-  (log :info :config (.. "Headset refresh rate: " store.config.headset.refresh-rate-hz))
-  (log :info :config (.. "Save directory: " (lovr.filesystem.getSaveDirectory)))
+  (log.info :config (.. "Headset refresh rate: " store.config.headset.refresh-rate-hz))
+  (log.info :config (.. "Save directory: " (lovr.filesystem.getSaveDirectory)))
   (when (lovr.filesystem.isFile :blocks.json)
     (set store.blocks (deserialize-blocks (lovr.filesystem.read :blocks.json)))))
 
@@ -45,14 +45,14 @@
           (set store.input.text-focus nil))))
   (when (= store.input.mode :physical)
     (when (lovr.headset.wasPressed :hand/right :a)
-      (log :debug :codegen (generate-code store.blocks))
+      (log.debug :codegen (generate-code store.blocks))
       (xpcall
        (fn [] (fennel.eval (generate-code store.blocks)))
        (fn [error]
-         (log :error :codegen error))))
+         (log.error :codegen error))))
     (when (lovr.headset.wasPressed :hand/right :b)
       (let [serialized-blocks (serialize-blocks store.blocks)]
-        (log :debug :persistence serialized-blocks)
+        (log.debug :persistence serialized-blocks)
         (lovr.filesystem.write "blocks.json" serialized-blocks)))
     (when (lovr.headset.wasPressed :hand/left :x)
       (add-block (new-block (lovr.headset.getPosition :hand/left))))
@@ -71,7 +71,7 @@
 
 (fn form-from-functions.draw []
   (elapsed-time.draw store.elapsed)
-  (draw-logs store.logs)
+  (log.draw store.logs)
   (lovr.graphics.print (.. (format-hand :hand/left) "\n    " (format-hand :hand/right)) -0.03 1.3 -2 0.1)
   (each [_ hand (pairs [:hand/left :hand/right])]
         (draw-hand (. store.input hand)))
