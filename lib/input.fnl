@@ -20,17 +20,6 @@
   (let [device (. store.input device-name)]
     (and (not (. device.d-pad button)) (. device.previous.d-pad button))))
 
-;; Handling built-in inputs
-(fn update-grip-state [device-name]
-  (let [hand (. store.input device-name)]
-    (when (lovr.headset.wasPressed device-name :grip)
-      (let [nearby-blocks (icollect [_ block (ipairs store.blocks)]
-                                    (when (< (: (- hand.position block.position) :length) 0.1) block))
-            nearest-block (. nearby-blocks 1)]
-        (set hand.contents nearest-block))) 
-    (when (lovr.headset.wasReleased device-name :grip)
-      (tset store.input device-name :contents nil))))
-
 (fn input.update-controller-state [device-name]
   (let [device (. store.input device-name)
         is-tracked (lovr.headset.isTracked device-name)]
@@ -43,8 +32,6 @@
       (set device.was-tracked true)
       (device.position:set (lovr.headset.getPosition device-name))
       (device.rotation:set (lovr.headset.getOrientation device-name)))
-    ; Process grabbing things
-    (update-grip-state device-name)
     ; Process thumbsticks and virtual d-pad
     (device.thumbstick:set (lovr.headset.getAxis device-name :thumbstick))
     (set device.d-pad.down (< device.thumbstick.y -0.6))

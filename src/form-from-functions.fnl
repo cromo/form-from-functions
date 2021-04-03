@@ -21,6 +21,12 @@
   (when (lovr.filesystem.isFile :blocks.json)
     (set store.blocks (blocks.deserialize (lovr.filesystem.read :blocks.json)))))
 
+(fn grab-nearby-block-if-able [hand blocks]
+  (let [nearby-blocks (icollect [_ block (ipairs store.blocks)]
+                                (when (< (: (- hand.position block.position) :length) 0.1) block))
+        nearest-block (. nearby-blocks 1)]
+    (set hand.contents nearest-block)))
+
 (fn physical-update [dt]
   (when (lovr.headset.wasPressed :hand/right :a)
     (xpcall
@@ -37,6 +43,11 @@
              store.input.hand/left.contents
              store.input.hand/right.contents)
     (block.link store.input.hand/left.contents store.input.hand/right.contents))
+  (each [_ hand-name (pairs [:hand/left :hand/right])]
+        (when (lovr.headset.wasPressed hand-name :grip)
+          (grab-nearby-block-if-able (. store.input hand-name) store.blocks))
+        (when (lovr.headset.wasReleased hand-name :grip)
+          (tset store.input hand-name :contents nil)))
   (if (and (lovr.headset.wasPressed :hand/left :y)
            store.input.hand/left.contents)
     (do (set store.input.text-focus store.input.hand/left.contents)
