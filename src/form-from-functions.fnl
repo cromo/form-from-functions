@@ -9,7 +9,17 @@
 (local hand (require :lib/hand))
 (local log (require :lib/logging))
 
-(require :src/store)
+(local store
+       {:input
+        {:hand/left (hand.init :hand/left)
+         :hand/right (hand.init :hand/right)
+         :mode :physical
+         :text-focus nil}
+        :blocks (blocks.init)
+        :text-input (text-input.init)
+        :elapsed (elapsed-time.init)
+        :config
+        {:headset {:refresh-rate-hz (lovr.headset.getDisplayFrequency)}}})
 
 (local form-from-functions {})
 
