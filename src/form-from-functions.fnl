@@ -9,7 +9,7 @@
         : deserialize-blocks} (require :lib/block))
 (local {: generate-code} (require :lib/code-gen))
 (local elapsed-time (require :lib/elapsed-time))
-(local {: format-hand : draw-hand} (require :lib/hand))
+(local hand (require :lib/hand))
 (local {: update-controller-state} (require :lib/input))
 (local log (require :lib/logging))
 
@@ -72,9 +72,9 @@
 (fn form-from-functions.draw []
   (elapsed-time.draw store.elapsed)
   (log.draw store.logs)
-  (lovr.graphics.print (.. (format-hand :hand/left) "\n    " (format-hand :hand/right)) -0.03 1.3 -2 0.1)
-  (each [_ hand (pairs [:hand/left :hand/right])]
-        (draw-hand (. store.input hand)))
+  (lovr.graphics.print (.. (hand.format :hand/left) "\n    " (hand.format :hand/right)) -0.03 1.3 -2 0.1)
+  (each [_ hand-name (pairs [:hand/left :hand/right])]
+        (hand.draw (. store.input hand-name)))
   (each [i block (ipairs store.blocks)]
         (draw-block block))
   (logging-breaker.draw text-input))

@@ -4,7 +4,7 @@
 
 (local hand {})
 
-(lambda hand.new-hand []
+(lambda hand.init []
         {:was-tracked false
          :is-tracked false
          :thumbstick (lovr.math.newVec2)
@@ -17,7 +17,7 @@
          :rotation (lovr.math.newQuat)
          :contents nil})
 
-(lambda hand.format-hand [device-name]
+(lambda hand.format [device-name]
         (let [hand (. store.input device-name)]
           (string.format "%s {is: %s was: %s pressed: {up: %.2f down: %.2f} stick: %s up: %s down: %s pos: %s contents: %s}"
                          device-name
@@ -31,7 +31,7 @@
                          (format-vec3 hand.position)
                          (not (not hand.contents)))))
 
-(fn hand.draw-hand [{: was-tracked : is-tracked : position}]
+(fn hand.draw [{: was-tracked : is-tracked : position}]
   (when was-tracked
     (if (not is-tracked) (lovr.graphics.setColor 0.2 0.2 0.2 0.8))
     (lovr.graphics.sphere position 0.03)

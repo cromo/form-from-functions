@@ -1,7 +1,7 @@
 (local {:init text-input} (require :lib/disk-text-input))
 (local {:init elapsed-time} (require :lib/elapsed-time))
 (local {: new-block} (require :lib/block))
-(local {: new-hand} (require :lib/hand))
+(local {:init new-hand} (require :lib/hand))
 (local {: new-log} (require :lib/logging))
 
 ;; TODO(cromo): Make this less global. It would be better for parts of this tree
