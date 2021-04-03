@@ -63,7 +63,10 @@
 (fn form-from-functions.draw []
   (elapsed-time.draw store.elapsed)
   (log.draw store.logs)
-  (lovr.graphics.print (.. (hand.format :hand/left) "\n    " (hand.format :hand/right)) -0.03 1.3 -2 0.1)
+  (lovr.graphics.print
+   (.. (hand.format store.input.hand/left) "\n    "
+       (hand.format store.input.hand/right))
+   -0.03 1.3 -2 0.1)
   (each [_ hand-name (pairs [:hand/left :hand/right])]
         (hand.draw (. store.input hand-name)))
   (each [i block (ipairs store.blocks)]

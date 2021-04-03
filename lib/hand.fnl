@@ -19,19 +19,18 @@
          :rotation (lovr.math.newQuat)
          :contents nil})
 
-(lambda hand.format [device-name]
-        (let [hand (. store.input device-name)]
-          (string.format "%s {is: %s was: %s pressed: {up: %.2f down: %.2f} stick: %s up: %s down: %s pos: %s contents: %s}"
-                         device-name
-                         hand.is-tracked
-                         hand.was-tracked
-                         hand.pressed.up
-                         hand.pressed.down
-                         (format-vec2 hand.thumbstick)
-                         (tostring hand.d-pad.up)
-                         (tostring hand.d-pad.down)
-                         (format-vec3 hand.position)
-                         (not (not hand.contents)))))
+(lambda hand.format [hand]
+        (string.format "%s {is: %s was: %s pressed: {up: %.2f down: %.2f} stick: %s up: %s down: %s pos: %s contents: %s}"
+                       hand.name
+                       hand.is-tracked
+                       hand.was-tracked
+                       hand.pressed.up
+                       hand.pressed.down
+                       (format-vec2 hand.thumbstick)
+                       (tostring hand.d-pad.up)
+                       (tostring hand.d-pad.down)
+                       (format-vec3 hand.position)
+                       (not (not hand.contents))))
 
 (fn hand.update [self]
   (update-controller-state self.name)
