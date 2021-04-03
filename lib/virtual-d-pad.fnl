@@ -14,39 +14,36 @@
    :next-repeat {:up -1 :down -1}
    :repeated {:up false :down false}})
 
-(fn d-pad-was-pressed [device-name button]
-  (let [device (. store.input device-name)]
-    (and (. device.d-pad button) (not (. device.previous.d-pad button)))))
+(fn d-pad-was-pressed [self button]
+  (and (. self.d-pad button) (not (. self.previous.d-pad button))))
 
-(fn d-pad-was-repeated [device-name button]
-  (. store.input device-name :repeated button))
+(fn d-pad-was-repeated [self button]
+  (. self.repeated button))
 
-(fn virtual-d-pad.d-pad-was-pressed-or-repeated [device-name button]
-  (or (d-pad-was-pressed device-name button)
-      (d-pad-was-repeated device-name button)))
+(fn virtual-d-pad.d-pad-was-pressed-or-repeated [self button]
+  (or (d-pad-was-pressed self button)
+      (d-pad-was-repeated self button)))
 
-(fn d-pad-is-down [device-name button]
-  (. store.input device-name :d-pad button))
+(fn d-pad-is-down [self button]
+  (. self.d-pad button))
 
-(fn d-pad-was-released [device-name button]
-  (let [device (. store.input device-name)]
-    (and (not (. device.d-pad button)) (. device.previous.d-pad button))))
+(fn d-pad-was-released [self button]
+  (and (not (. self.d-pad button)) (. self.previous.d-pad button)))
 
-(fn virtual-d-pad.update-virtual-d-pad [device-name]
-  (let [device (. store.input device-name)]
-    ; Save off previous virtual d-pad state
-    (each [key-name is-pressed (pairs device.d-pad)]
-          (tset device.previous.d-pad key-name is-pressed))
-    ; Process thumbsticks and virtual d-pad
-    (set device.d-pad.down (< device.thumbstick.y -0.6))
-    (set device.d-pad.up (< 0.6 device.thumbstick.y))
-    (each [direction _ (pairs device.pressed)]
-          (tset device.repeated direction false)
-          (when (d-pad-was-pressed device-name direction)
-            (tset device.pressed direction store.elapsed.seconds)
-            (tset device.next-repeat direction (+ store.elapsed.seconds repeat-delay-seconds)))
-          (when (and (d-pad-is-down device-name direction) (< (. device.next-repeat direction) store.elapsed.seconds))
-            (tset device.repeated direction true)
-            (tset device.next-repeat direction (+ (. device.next-repeat direction) repeat-period-seconds))))))
+(fn virtual-d-pad.update-virtual-d-pad [self]
+  ; Save off previous virtual d-pad state
+  (each [key-name is-pressed (pairs self.d-pad)]
+        (tset self.previous.d-pad key-name is-pressed))
+  (let [(x y) (lovr.headset.getAxis self.name :thumbstick)]
+    (set self.d-pad.down (< y -0.6))
+    (set self.d-pad.up (< 0.6 y)))
+  (each [direction _ (pairs self.d-pad)]
+        (tset self.repeated direction false)
+        (when (d-pad-was-pressed self direction)
+          (tset self.pressed direction store.elapsed.seconds)
+          (tset self.next-repeat direction (+ store.elapsed.seconds repeat-delay-seconds)))
+        (when (and (d-pad-is-down self direction) (< (. self.next-repeat direction) store.elapsed.seconds))
+          (tset self.repeated direction true)
+          (tset self.next-repeat direction (+ (. self.next-repeat direction) repeat-period-seconds)))))
 
 virtual-d-pad
