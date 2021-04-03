@@ -27,14 +27,12 @@
 
 (fn physical-update [dt]
   (when (lovr.headset.wasPressed :hand/right :a)
-    (log.debug :codegen (generate-code store.blocks))
     (xpcall
      (fn [] (fennel.eval (generate-code store.blocks)))
      (fn [error]
        (log.error :codegen error))))
   (when (lovr.headset.wasPressed :hand/right :b)
     (let [serialized-blocks (serialize-blocks store.blocks)]
-      (log.debug :persistence serialized-blocks)
       (lovr.filesystem.write "blocks.json" serialized-blocks)))
   (when (lovr.headset.wasPressed :hand/left :x)
     (add-block (new-block (lovr.headset.getPosition :hand/left))))
