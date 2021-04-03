@@ -24,32 +24,19 @@
   (when (lovr.filesystem.isFile :blocks.json)
     (set store.blocks (deserialize-blocks (lovr.filesystem.read :blocks.json)))))
 
-(fn form-from-functions.update [dt]
-  (elapsed-time.update store.elapsed dt)
-  (hand.update store.input.hand/left)
-  (hand.update store.input.hand/right)
-  (when (lovr.headset.wasPressed :hand/left :y)
-    (if store.input.hand/left.contents
-      (do (set store.input.mode :textual)
-          (set store.input.text-focus store.input.hand/left.contents)
-          (set store.input.hand/left.contents nil))
-      store.input.text-focus
-      (do (set store.input.mode :physical)
-          (set store.input.text-focus nil))))
-  (when (= store.input.mode :physical)
-    (when (lovr.headset.wasPressed :hand/right :a)
-      (log.debug :codegen (generate-code store.blocks))
-      (xpcall
-       (fn [] (fennel.eval (generate-code store.blocks)))
-       (fn [error]
-         (log.error :codegen error))))
-    (when (lovr.headset.wasPressed :hand/right :b)
-      (let [serialized-blocks (serialize-blocks store.blocks)]
-        (log.debug :persistence serialized-blocks)
-        (lovr.filesystem.write "blocks.json" serialized-blocks)))
-    (when (lovr.headset.wasPressed :hand/left :x)
-      (add-block (new-block (lovr.headset.getPosition :hand/left)))))
-  ; Process linking blocks
+(fn physical-update [dt]
+  (when (lovr.headset.wasPressed :hand/right :a)
+    (log.debug :codegen (generate-code store.blocks))
+    (xpcall
+     (fn [] (fennel.eval (generate-code store.blocks)))
+     (fn [error]
+       (log.error :codegen error))))
+  (when (lovr.headset.wasPressed :hand/right :b)
+    (let [serialized-blocks (serialize-blocks store.blocks)]
+      (log.debug :persistence serialized-blocks)
+      (lovr.filesystem.write "blocks.json" serialized-blocks)))
+  (when (lovr.headset.wasPressed :hand/left :x)
+    (add-block (new-block (lovr.headset.getPosition :hand/left))))
   (when (and (or (lovr.headset.wasPressed :hand/left :trigger)
                  (lovr.headset.wasPressed :hand/right :trigger))
              store.input.hand/left.contents
@@ -57,8 +44,28 @@
     (if store.input.hand/left.contents.next
       (set store.input.hand/left.contents.next nil)
       (set store.input.hand/left.contents.next store.input.hand/right.contents)))
-  (when (= store.input.mode :textual)
-    (logging-breaker.update text-input store.input.text-focus)))
+  (if (and (lovr.headset.wasPressed :hand/left :y)
+           store.input.hand/left.contents)
+    (do (set store.input.text-focus store.input.hand/left.contents)
+        (set store.input.hand/left.contents nil)
+        :textual)
+    :physical))
+
+(fn textual-update [dt]
+  (logging-breaker.update text-input store.input.text-focus)
+  (if (lovr.headset.wasPressed :hand/left :y)
+    (do (set store.input.text-focus nil)
+        :physical)
+    :textual))
+
+(fn form-from-functions.update [dt]
+  (elapsed-time.update store.elapsed dt)
+  (hand.update store.input.hand/left)
+  (hand.update store.input.hand/right)
+  (set store.input.mode
+       (match store.input.mode
+         :physical (physical-update dt)
+         :textual (textual-update dt))))
 
 (fn form-from-functions.draw []
   (elapsed-time.draw store.elapsed)
