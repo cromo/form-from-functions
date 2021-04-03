@@ -10,6 +10,12 @@
   (when (< 100 (length store.logs))
     (table.remove store.logs 1)))
 
+(fn logging.error [tag message] (logging.log :error tag message))
+(fn logging.warning [tag message] (logging.log :warning tag message))
+(fn logging.info [tag message] (logging.log :info tag message))
+(fn logging.debug [tag message] (logging.log :debug tag message))
+(fn logging.verbose [tag message] (logging.log :verbose tag message))
+
 (fn format-log [{: level : tag : message}]
   (.. level " " tag " " message))
 
