@@ -6,7 +6,7 @@
 (local blocks (require :lib/blocks))
 (local {: generate-code} (require :lib/code-gen))
 (local elapsed-time (require :lib/elapsed-time))
-(local {: update-virtual-d-pad} (require :lib/input))
+(local {: update-virtual-d-pad} (require :lib/virtual-d-pad))
 (local hand (require :lib/hand))
 (local log (require :lib/logging))
 

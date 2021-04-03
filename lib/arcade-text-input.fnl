@@ -1,4 +1,4 @@
-(local {: d-pad-was-pressed-or-repeated} (require :lib/input))
+(local {: d-pad-was-pressed-or-repeated} (require :lib/virtual-d-pad))
 (local {: wrap} (require :lib/math))
 
 (local arcade-text-input {})
