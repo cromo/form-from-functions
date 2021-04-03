@@ -6,8 +6,14 @@
 (local repeat-delay-seconds 0.7)
 (local repeat-period-seconds 0.05)
 
-;; Virtual d-pad handling
-;; (this should probably be moved out into its own module)
+(fn virtual-d-pad.init [device-name]
+  {:name device-name
+   :d-pad {:up false :down false}
+   :previous {:d-pad {:up  false :down false}}
+   :pressed {:up 0 :down 0}
+   :next-repeat {:up -1 :down -1}
+   :repeated {:up false :down false}})
+
 (fn d-pad-was-pressed [device-name button]
   (let [device (. store.input device-name)]
     (and (. device.d-pad button) (not (. device.previous.d-pad button)))))
