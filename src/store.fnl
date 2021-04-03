@@ -18,5 +18,4 @@
          :text-input (text-input)
          :elapsed (elapsed-time)
          :config
-         {:headset {:refresh-rate-hz (lovr.headset.getDisplayFrequency)}
-          :repeat {:delay 0.7 :hz 0.05}}})
+         {:headset {:refresh-rate-hz (lovr.headset.getDisplayFrequency)}}})

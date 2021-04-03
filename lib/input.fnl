@@ -1,4 +1,10 @@
+;; This code may be a bit broken; it was originally used for the arcade text
+;; input, but that fell by the wayside when the disk input was written.
+
 (local input {})
+
+(local repeat-delay-seconds 0.7)
+(local repeat-period-seconds 0.05)
 
 ;; Virtual d-pad handling
 ;; (this should probably be moved out into its own module)
@@ -32,9 +38,9 @@
           (tset device.repeated direction false)
           (when (d-pad-was-pressed device-name direction)
             (tset device.pressed direction store.elapsed.seconds)
-            (tset device.next-repeat direction (+ store.elapsed.seconds store.config.repeat.delay)))
+            (tset device.next-repeat direction (+ store.elapsed.seconds repeat-delay-seconds)))
           (when (and (d-pad-is-down device-name direction) (< (. device.next-repeat direction) store.elapsed.seconds))
             (tset device.repeated direction true)
-            (tset device.next-repeat direction (+ (. device.next-repeat direction) store.config.repeat.hz))))))
+            (tset device.next-repeat direction (+ (. device.next-repeat direction) repeat-period-seconds))))))
 
 input
