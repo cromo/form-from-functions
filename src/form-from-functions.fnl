@@ -2,12 +2,8 @@
 
 (local logging-breaker (require :lib/logging-breaker))
 (local disk-text-input (require :lib/disk-text-input))
-(local {: new-block
-        : add-block
-        : draw-block
-        : serialize-blocks
-        : deserialize-blocks
-        :link link-blocks} (require :lib/block))
+(local block (require :lib/block))
+(local blocks (require :lib/blocks))
 (local {: generate-code} (require :lib/code-gen))
 (local elapsed-time (require :lib/elapsed-time))
 (local hand (require :lib/hand))
@@ -23,7 +19,7 @@
   (log.info :config (.. "Headset refresh rate: " store.config.headset.refresh-rate-hz))
   (log.info :config (.. "Save directory: " (lovr.filesystem.getSaveDirectory)))
   (when (lovr.filesystem.isFile :blocks.json)
-    (set store.blocks (deserialize-blocks (lovr.filesystem.read :blocks.json)))))
+    (set store.blocks (blocks.deserialize (lovr.filesystem.read :blocks.json)))))
 
 (fn physical-update [dt]
   (when (lovr.headset.wasPressed :hand/right :a)
@@ -32,15 +28,15 @@
      (fn [error]
        (log.error :codegen error))))
   (when (lovr.headset.wasPressed :hand/right :b)
-    (let [serialized-blocks (serialize-blocks store.blocks)]
+    (let [serialized-blocks (blocks.serialize store.blocks)]
       (lovr.filesystem.write "blocks.json" serialized-blocks)))
   (when (lovr.headset.wasPressed :hand/left :x)
-    (add-block (new-block (lovr.headset.getPosition :hand/left))))
+    (blocks.add store.blocks (block.init (lovr.headset.getPosition :hand/left))))
   (when (and (or (lovr.headset.wasPressed :hand/left :trigger)
                  (lovr.headset.wasPressed :hand/right :trigger))
              store.input.hand/left.contents
              store.input.hand/right.contents)
-    (link-blocks store.input.hand/left.contents store.input.hand/right.contents))
+    (block.link store.input.hand/left.contents store.input.hand/right.contents))
   (if (and (lovr.headset.wasPressed :hand/left :y)
            store.input.hand/left.contents)
     (do (set store.input.text-focus store.input.hand/left.contents)
@@ -73,8 +69,7 @@
    -0.03 1.3 -2 0.1)
   (each [_ hand-name (pairs [:hand/left :hand/right])]
         (hand.draw (. store.input hand-name)))
-  (each [i block (ipairs store.blocks)]
-        (draw-block block))
+  (blocks.draw store.blocks)
   (logging-breaker.draw text-input))
 
 form-from-functions

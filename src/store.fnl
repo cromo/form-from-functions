@@ -1,6 +1,6 @@
 (local {:init text-input} (require :lib/disk-text-input))
 (local {:init elapsed-time} (require :lib/elapsed-time))
-(local {: new-block} (require :lib/block))
+(local blocks (require :lib/blocks))
 (local {:init new-hand} (require :lib/hand))
 (local {: new-log} (require :lib/logging))
 
@@ -14,7 +14,7 @@
           :mode :physical
           :text-focus nil}
          :logs (new-log)
-         :blocks [(new-block 0 1 -0.4)]
+         :blocks (blocks.init)
          :text-input (text-input)
          :elapsed (elapsed-time)
          :config
