@@ -9,13 +9,13 @@
 (fn virtual-d-pad.init [device-name]
   {:name device-name
    :d-pad {:up false :down false}
-   :previous {:d-pad {:up  false :down false}}
+   :previous {:up  false :down false}
    :pressed {:up 0 :down 0}
    :next-repeat {:up -1 :down -1}
    :repeated {:up false :down false}})
 
 (fn d-pad-was-pressed [self button]
-  (and (. self.d-pad button) (not (. self.previous.d-pad button))))
+  (and (. self.d-pad button) (not (. self.previous button))))
 
 (fn d-pad-was-repeated [self button]
   (. self.repeated button))
@@ -28,12 +28,12 @@
   (. self.d-pad button))
 
 (fn d-pad-was-released [self button]
-  (and (not (. self.d-pad button)) (. self.previous.d-pad button)))
+  (and (not (. self.d-pad button)) (. self.previous button)))
 
 (fn virtual-d-pad.update-virtual-d-pad [self]
   ; Save off previous virtual d-pad state
   (each [key-name is-pressed (pairs self.d-pad)]
-        (tset self.previous.d-pad key-name is-pressed))
+        (tset self.previous key-name is-pressed))
   (let [(x y) (lovr.headset.getAxis self.name :thumbstick)]
     (set self.d-pad.down (< y -0.6))
     (set self.d-pad.up (< 0.6 y)))
