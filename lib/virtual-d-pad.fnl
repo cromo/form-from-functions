@@ -29,7 +29,7 @@
 (fn d-pad-was-released [self button]
   (and (not (. self.current button)) (. self.previous button)))
 
-(fn virtual-d-pad.update-virtual-d-pad [self]
+(fn virtual-d-pad.update [self]
   ; Save off previous virtual d-pad state
   (each [key-name is-pressed (pairs self.current)]
         (tset self.previous key-name is-pressed))
