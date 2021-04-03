@@ -1,11 +1,13 @@
+(local {: update-controller-state} (require :lib/input))
 (local {: format-vec2
         : format-vec3}
        (require :lib/math))
 
 (local hand {})
 
-(lambda hand.init []
-        {:was-tracked false
+(lambda hand.init [name]
+        {:name name
+         :was-tracked false
          :is-tracked false
          :thumbstick (lovr.math.newVec2)
          :d-pad {:up false :down false}
@@ -30,6 +32,12 @@
                          (tostring hand.d-pad.down)
                          (format-vec3 hand.position)
                          (not (not hand.contents)))))
+
+(fn hand.update [self]
+  (update-controller-state self.name)
+  (when self.contents
+    (self.contents.position:set self.position)
+    (self.contents.rotation:set self.rotation)))
 
 (fn hand.draw [{: was-tracked : is-tracked : position}]
   (when was-tracked

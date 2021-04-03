@@ -9,8 +9,8 @@
 ;; everything needing to know the global structure of the store.
 (global store
         {:input
-         {:hand/left (new-hand)
-          :hand/right (new-hand)
+         {:hand/left (new-hand :hand/left)
+          :hand/right (new-hand :hand/right)
           :mode :physical
           :text-focus nil}
          :logs (new-log)
