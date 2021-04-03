@@ -1,7 +1,7 @@
 ;; This code may be a bit broken; it was originally used for the arcade text
 ;; input, but that fell by the wayside when the disk input was written.
 
-(local input {})
+(local virtual-d-pad {})
 
 (local repeat-delay-seconds 0.7)
 (local repeat-period-seconds 0.05)
@@ -15,7 +15,7 @@
 (fn d-pad-was-repeated [device-name button]
   (. store.input device-name :repeated button))
 
-(fn input.d-pad-was-pressed-or-repeated [device-name button]
+(fn virtual-d-pad.d-pad-was-pressed-or-repeated [device-name button]
   (or (d-pad-was-pressed device-name button)
       (d-pad-was-repeated device-name button)))
 
@@ -26,7 +26,7 @@
   (let [device (. store.input device-name)]
     (and (not (. device.d-pad button)) (. device.previous.d-pad button))))
 
-(fn input.update-virtual-d-pad [device-name]
+(fn virtual-d-pad.update-virtual-d-pad [device-name]
   (let [device (. store.input device-name)]
     ; Save off previous virtual d-pad state
     (each [key-name is-pressed (pairs device.d-pad)]
@@ -43,4 +43,4 @@
             (tset device.repeated direction true)
             (tset device.next-repeat direction (+ (. device.next-repeat direction) repeat-period-seconds))))))
 
-input
+virtual-d-pad
