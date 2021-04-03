@@ -73,7 +73,7 @@
 
 (fn form-from-functions.draw []
   (elapsed-time.draw store.elapsed)
-  (log.draw store.logs)
+  (log.draw)
   (lovr.graphics.print
    (.. (hand.format store.input.hand/left) "\n    "
        (hand.format store.input.hand/right))

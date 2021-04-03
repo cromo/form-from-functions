@@ -1,14 +1,18 @@
 (local logging {})
 
 (fn logging.new-log []
-  {})
+  [])
+
+;; TODO(cromo): Have a mechanism to use an external log state instead of closing
+;; over one in this scope.
+(local logs (logging.new-log))
 
 (fn logging.log [level tag message]
-  (table.insert store.logs {: level : tag : message})
+  (table.insert logs {: level : tag : message})
   ;; There's definitely room for optimization here (e.g. circular buffers), but
   ;; working first, fast later.
-  (when (< 100 (length store.logs))
-    (table.remove store.logs 1)))
+  (when (< 100 (length logs))
+    (table.remove logs 1)))
 
 (fn logging.error [tag message] (logging.log :error tag message))
 (fn logging.warning [tag message] (logging.log :warning tag message))
@@ -19,7 +23,7 @@
 (fn format-log [{: level : tag : message}]
   (.. level " " tag " " message))
 
-(fn logging.draw [logs]
+(fn logging.draw []
   (var offset 0)
   (local font (lovr.graphics.getFont))
   (for [i (length logs) 1 -1]
