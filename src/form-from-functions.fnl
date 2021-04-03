@@ -6,7 +6,8 @@
         : add-block
         : draw-block
         : serialize-blocks
-        : deserialize-blocks} (require :lib/block))
+        : deserialize-blocks
+        :link link-blocks} (require :lib/block))
 (local {: generate-code} (require :lib/code-gen))
 (local elapsed-time (require :lib/elapsed-time))
 (local hand (require :lib/hand))
@@ -41,9 +42,7 @@
                  (lovr.headset.wasPressed :hand/right :trigger))
              store.input.hand/left.contents
              store.input.hand/right.contents)
-    (if store.input.hand/left.contents.next
-      (set store.input.hand/left.contents.next nil)
-      (set store.input.hand/left.contents.next store.input.hand/right.contents)))
+    (link-blocks store.input.hand/left.contents store.input.hand/right.contents))
   (if (and (lovr.headset.wasPressed :hand/left :y)
            store.input.hand/left.contents)
     (do (set store.input.text-focus store.input.hand/left.contents)

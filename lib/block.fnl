@@ -10,6 +10,9 @@
 (lambda block.add-block [block]
         (table.insert store.blocks block))
 
+(fn block.link [from to]
+  (set from.next (if from.next nil to)))
+
 (fn block.draw-block [block]
   (let [font (lovr.graphics.getFont)
         (unscaled-width) (font:getWidth block.text)
