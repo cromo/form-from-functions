@@ -1,7 +1,7 @@
 (local fennel (require :third-party/fennel))
 
 (local logging-breaker (require :lib/logging-breaker))
-(local disk-text-input (require :lib/disk-text-input))
+(local text-input (require :lib/disk-text-input))
 (local block (require :lib/block))
 (local blocks (require :lib/blocks))
 (local {: generate-code} (require :lib/code-gen))
@@ -13,7 +13,7 @@
 
 (local form-from-functions {})
 
-(local text-input (logging-breaker.init disk-text-input))
+(local text-input (logging-breaker.init text-input))
 
 (fn form-from-functions.load []
   (log.info :config (.. "Headset refresh rate: " store.config.headset.refresh-rate-hz))
@@ -56,7 +56,7 @@
     :physical))
 
 (fn textual-update [dt]
-  (logging-breaker.update text-input store.input.text-focus)
+  (logging-breaker.update text-input dt store.input.text-focus)
   (if (lovr.headset.wasPressed :hand/left :y)
     (do (set store.input.text-focus nil)
         :physical)

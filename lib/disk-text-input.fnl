@@ -11,7 +11,7 @@
   {:selected-character " "
    :layer 1})
 
-(fn disk-text-input.update [state container]
+(fn disk-text-input.update [state dt container]
   (let [(x y) (lovr.headset.getAxis :hand/left :thumbstick)
         centered? (and (< -0.001 x 0.001) (< -0.001 y 0.001))
         angle-radians (+ math.pi (math.atan2 y x))

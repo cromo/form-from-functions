@@ -9,8 +9,8 @@
   {:text-index 1
    :d-pad (d-pad.init :hand/left)})
 
-(fn arcade-text-input.update [state container]
-  (d-pad.update state.d-pad)
+(fn arcade-text-input.update [state dt container]
+  (d-pad.update state.d-pad dt)
   (when (lovr.headset.wasPressed :hand/right :a)
     (set container.text (.. container.text (character-list:sub state.text-index state.text-index))))
   (when (lovr.headset.wasPressed :hand/right :b)

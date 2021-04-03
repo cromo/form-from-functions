@@ -8,6 +8,7 @@
 
 (fn virtual-d-pad.init [device-name]
   {:name device-name
+   :elapsed-seconds 0
    :current {:up false :down false}
    :previous {:up  false :down false}
    :next-repeat {:up -1 :down -1}
@@ -29,7 +30,8 @@
 (fn d-pad-was-released [self button]
   (and (not (. self.current button)) (. self.previous button)))
 
-(fn virtual-d-pad.update [self]
+(fn virtual-d-pad.update [self dt]
+  (set self.elapsed-seconds (+ self.elapsed-seconds dt))
   ; Save off previous virtual d-pad state
   (each [key-name is-pressed (pairs self.current)]
         (tset self.previous key-name is-pressed))
@@ -39,8 +41,8 @@
   (each [direction _ (pairs self.current)]
         (tset self.repeated direction false)
         (when (d-pad-was-pressed self direction)
-          (tset self.next-repeat direction (+ store.elapsed.seconds repeat-delay-seconds)))
-        (when (and (d-pad-is-down self direction) (< (. self.next-repeat direction) store.elapsed.seconds))
+          (tset self.next-repeat direction (+ self.elapsed-seconds repeat-delay-seconds)))
+        (when (and (d-pad-is-down self direction) (< (. self.next-repeat direction) self.elapsed-seconds))
           (tset self.repeated direction true)
           (tset self.next-repeat direction (+ (. self.next-repeat direction) repeat-period-seconds)))))
 
