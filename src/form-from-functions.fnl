@@ -1,3 +1,5 @@
+(local {:headset {:wasPressed was-pressed
+                  :wasReleased was-released}} lovr)
 (local fennel (require :third-party/fennel))
 
 (local logging-breaker (require :lib/logging-breaker))
@@ -10,29 +12,23 @@
 (local log (require :lib/logging))
 (local persistence (require :src/persistence))
 
-(local store
-       {:input
-        {:hand/left (hand.init :hand/left)
-         :hand/right (hand.init :hand/right)
-         :mode :physical
-         :text-focus nil}
-        :blocks (blocks.init)
-        :text-input (text-input.init)
-        :elapsed (elapsed-time.init)})
-
 (local form-from-functions {})
-
+(local hands
+       {:left (hand.init :hand/left)
+        :right (hand.init :hand/right)})
+(var input-mode :physical)
+(var user-blocks (blocks.init))
+(var text-focus nil)
+(local elapsed (elapsed-time.init))
 (local text-input (logging-breaker.init text-input))
-(local {:wasPressed was-pressed
-        :wasReleased was-released} lovr.headset)
 
 (fn form-from-functions.load []
   (log.info :config (.. "Save directory: " (lovr.filesystem.getSaveDirectory)))
   (when (persistence.blocks-file-exists?)
-    (set store.blocks (persistence.load-blocks-file))))
+    (set user-blocks (persistence.load-blocks-file))))
 
 (fn grab-nearby-block-if-able [hand blocks]
-  (let [nearby-blocks (icollect [_ block (ipairs store.blocks)]
+  (let [nearby-blocks (icollect [_ block (ipairs user-blocks)]
                                 (when (< (: (- hand.position block.position) :length) 0.1) block))
         nearest-block (. nearby-blocks 1)]
     (set hand.contents nearest-block)))
@@ -62,56 +58,56 @@
   (match (input-adapter.physical)
     {:evaluate true}
     (xpcall
-     (fn [] (fennel.eval (generate-code store.blocks)))
+     (fn [] (fennel.eval (generate-code user-blocks)))
      (fn [error]
        (log.error :codegen error)))
     {:save true}
-    (persistence.save-blocks-file store.blocks)
+    (persistence.save-blocks-file user-blocks)
 
     {:create-block true}
-    (blocks.add store.blocks (block.init (store.input.hand/left.position:unpack)))
-    ({:link true} ? store.input.hand/left.contents store.input.hand/right.contents)
-    (block.link store.input.hand/left.contents store.input.hand/right.contents)
+    (blocks.add user-blocks (block.init (hands.left.position:unpack)))
+    ({:link true} ? hands.left.contents hands.right.contents)
+    (block.link hands.left.contents hands.right.contents)
 
     {:grab {:left true}}
-    (grab-nearby-block-if-able store.input.hand/left store.blocks)
+    (grab-nearby-block-if-able hands.left user-blocks)
     {:grab {:right true}}
-    (grab-nearby-block-if-able store.input.hand/right store.blocks)
+    (grab-nearby-block-if-able hands.right user-blocks)
     {:drop {:left true}}
-    (set store.input.hand/left.contents nil)
+    (set hands.left.contents nil)
     {:drop {:right true}}
-    (set store.input.hand/right.contents nil)
+    (set hands.right.contents nil)
 
-    ({:write-text true} ? store.input.hand/left.contents)
-    (do (set store.input.text-focus store.input.hand/left.contents)
-        (set store.input.hand/left.contents nil)))
-  (if store.input.text-focus :textual :physical))
+    ({:write-text true} ? hands.left.contents)
+    (do (set text-focus hands.left.contents)
+        (set hands.left.contents nil)))
+  (if text-focus :textual :physical))
 
 (fn textual-update [dt]
-  (logging-breaker.update text-input dt store.input.text-focus)
+  (logging-breaker.update text-input dt text-focus)
   (match (input-adapter.textual)
-    {:stop true} (set store.input.text-focus nil))
-  (if store.input.text-focus :textual :physical))
+    {:stop true} (set text-focus nil))
+  (if text-focus :textual :physical))
 
 (fn form-from-functions.update [dt]
-  (elapsed-time.update store.elapsed dt)
-  (hand.update store.input.hand/left)
-  (hand.update store.input.hand/right)
-  (set store.input.mode
-       (match store.input.mode
+  (elapsed-time.update elapsed dt)
+  (hand.update hands.left)
+  (hand.update hands.right)
+  (set input-mode
+       (match input-mode
          :physical (physical-update dt)
          :textual (textual-update dt))))
 
 (fn form-from-functions.draw []
-  (elapsed-time.draw store.elapsed)
+  (elapsed-time.draw elapsed)
   (log.draw)
   (lovr.graphics.print
-   (.. (hand.format store.input.hand/left) "\n    "
-       (hand.format store.input.hand/right))
+   (.. (hand.format hands.left) "\n    "
+       (hand.format hands.right))
    -0.03 1.3 -2 0.1)
-  (each [_ hand-name (pairs [:hand/left :hand/right])]
-        (hand.draw (. store.input hand-name)))
-  (blocks.draw store.blocks)
+  (each [_ hand-name (pairs [:left :right])]
+        (hand.draw (. hands hand-name)))
+  (blocks.draw user-blocks)
   (logging-breaker.draw text-input))
 
 form-from-functions
