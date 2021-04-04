@@ -38,7 +38,14 @@
                (let [wrappee {:init #8 :update #(set arg $2)}
                      wrapper (breaker.init wrappee)]
                  (breaker.update wrapper 23)
-                 (T:assert (= arg 23) "should pass through extra arguments"))))))
+                 (T:assert (= arg 23) "should pass through extra arguments"))))
+          (T "when calling a callback the nested layer doesn't define"
+             (fn [T]
+               (var draws 0)
+               (let [wrapper (breaker.init {:draw #(set draws (+ 1 draws))})]
+                 (breaker.update wrapper)
+                 (breaker.draw wrapper)
+                 (T:assert (= draws 1) "should not attempt to call it on that layer and continue running"))))))
      (T "when the wrapped layer errors"
         (fn [T]
           (T "and is called multiple times"
