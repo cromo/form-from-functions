@@ -9,7 +9,11 @@
                (var arg nil)
                (let [wrappee {:init #(set arg $1)}
                      wrapper (breaker.init wrappee nil 42)]
-                 (T:assert (= arg 42) "should pass through extra arguments"))))))
+                 (T:assert (= arg 42) "should pass through extra arguments"))))
+          (T "without an init function"
+             (fn [T]
+               (let [wrapper (breaker.init {})]
+                 (T:assert wrapper "shouldn't crash"))))))
      (T "in normal operation"
         (fn [T]
           (T "when calling draw without extra arguments"
