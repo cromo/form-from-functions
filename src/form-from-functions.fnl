@@ -8,6 +8,7 @@
 (local elapsed-time (require :lib/elapsed-time))
 (local hand (require :lib/hand))
 (local log (require :lib/logging))
+(local persistence (require :src/persistence))
 
 (local store
        {:input
@@ -17,19 +18,16 @@
          :text-focus nil}
         :blocks (blocks.init)
         :text-input (text-input.init)
-        :elapsed (elapsed-time.init)
-        :config
-        {:headset {:refresh-rate-hz (lovr.headset.getDisplayFrequency)}}})
+        :elapsed (elapsed-time.init)})
 
 (local form-from-functions {})
 
 (local text-input (logging-breaker.init text-input))
 
 (fn form-from-functions.load []
-  (log.info :config (.. "Headset refresh rate: " store.config.headset.refresh-rate-hz))
   (log.info :config (.. "Save directory: " (lovr.filesystem.getSaveDirectory)))
-  (when (lovr.filesystem.isFile :blocks.json)
-    (set store.blocks (blocks.deserialize (lovr.filesystem.read :blocks.json)))))
+  (when (persistence.blocks-file-exists?)
+    (set store.blocks (persistence.load-blocks-file))))
 
 (fn grab-nearby-block-if-able [hand blocks]
   (let [nearby-blocks (icollect [_ block (ipairs store.blocks)]
@@ -44,8 +42,7 @@
      (fn [error]
        (log.error :codegen error))))
   (when (lovr.headset.wasPressed :hand/right :b)
-    (let [serialized-blocks (blocks.serialize store.blocks)]
-      (lovr.filesystem.write "blocks.json" serialized-blocks)))
+    (persistence.save-blocks-file store.blocks))
   (when (lovr.headset.wasPressed :hand/left :x)
     (blocks.add store.blocks (block.init (lovr.headset.getPosition :hand/left))))
   (when (and (or (lovr.headset.wasPressed :hand/left :trigger)
