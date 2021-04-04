@@ -36,7 +36,7 @@
 (fn adapt-physical-oculus-touch-input []
   {:evaluate (was-pressed :hand/right :a)
    :save (was-pressed :hand/right :b)
-   :create-block (was-pressed :hand/left :x)
+   :reify-block (was-pressed :hand/left :x)
    :link (or (was-pressed :hand/left :trigger)
              (was-pressed :hand/right :trigger))
    :grab {:left (was-pressed :hand/left :grip)
@@ -64,7 +64,11 @@
     {:save true}
     (persistence.save-blocks-file user-blocks)
 
-    {:create-block true}
+    ({:reify-block true} ? hands.left.contents)
+    (let [block-to-remove hands.left.contents]
+      (set hands.left.contents nil)
+      (blocks.remove user-blocks block-to-remove))
+    {:reify-block true}
     (blocks.add user-blocks (block.init (hands.left.position:unpack)))
     ({:link true} ? hands.left.contents hands.right.contents)
     (block.link hands.left.contents hands.right.contents)

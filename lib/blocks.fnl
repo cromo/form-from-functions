@@ -3,16 +3,6 @@
 
 (local blocks {})
 
-(fn blocks.init []
-  [])
-
-(fn blocks.add [self block]
-  (table.insert self block))
-
-(fn blocks.draw [self]
-  (each [i block-state (ipairs self)]
-        (block.draw block-state)))
-
 (fn find-first [value t]
   (var index 0)
   (var found? false)
@@ -21,6 +11,23 @@
     (when (= value (. t index))
       (set found? true)))
   (if found? index nil))
+
+(fn blocks.init []
+  [])
+
+(fn blocks.add [self block]
+  (table.insert self block))
+
+(fn blocks.remove [self block-to-remove]
+  (each [_ block (ipairs self)]
+        (when (= block.next block-to-remove)
+          (set block.next nil)))
+  (let [index (find-first block-to-remove self)]
+    (when index (table.remove self index))))
+
+(fn blocks.draw [self]
+  (each [i block-state (ipairs self)]
+        (block.draw block-state)))
 
 (fn blocks.serialize [blocks]
   (json.encode (icollect [_ block (ipairs blocks)]
