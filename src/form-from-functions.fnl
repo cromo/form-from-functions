@@ -23,6 +23,8 @@
 (local form-from-functions {})
 
 (local text-input (logging-breaker.init text-input))
+(local {:wasPressed was-pressed
+        :wasReleased was-released} lovr.headset)
 
 (fn form-from-functions.load []
   (log.info :config (.. "Save directory: " (lovr.filesystem.getSaveDirectory)))
@@ -36,26 +38,26 @@
     (set hand.contents nearest-block)))
 
 (fn physical-update [dt]
-  (when (lovr.headset.wasPressed :hand/right :a)
+  (when (was-pressed :hand/right :a)
     (xpcall
      (fn [] (fennel.eval (generate-code store.blocks)))
      (fn [error]
        (log.error :codegen error))))
-  (when (lovr.headset.wasPressed :hand/right :b)
+  (when (was-pressed :hand/right :b)
     (persistence.save-blocks-file store.blocks))
-  (when (lovr.headset.wasPressed :hand/left :x)
-    (blocks.add store.blocks (block.init (lovr.headset.getPosition :hand/left))))
-  (when (and (or (lovr.headset.wasPressed :hand/left :trigger)
-                 (lovr.headset.wasPressed :hand/right :trigger))
+  (when (was-pressed :hand/left :x)
+    (blocks.add store.blocks (block.init (store.input.hand/left.position:unpack))))
+  (when (and (or (was-pressed :hand/left :trigger)
+                 (was-pressed :hand/right :trigger))
              store.input.hand/left.contents
              store.input.hand/right.contents)
     (block.link store.input.hand/left.contents store.input.hand/right.contents))
   (each [_ hand-name (pairs [:hand/left :hand/right])]
-        (when (lovr.headset.wasPressed hand-name :grip)
+        (when (was-pressed hand-name :grip)
           (grab-nearby-block-if-able (. store.input hand-name) store.blocks))
-        (when (lovr.headset.wasReleased hand-name :grip)
+        (when (was-released hand-name :grip)
           (tset store.input hand-name :contents nil)))
-  (if (and (lovr.headset.wasPressed :hand/left :y)
+  (if (and (was-pressed :hand/left :y)
            store.input.hand/left.contents)
     (do (set store.input.text-focus store.input.hand/left.contents)
         (set store.input.hand/left.contents nil)
@@ -64,7 +66,7 @@
 
 (fn textual-update [dt]
   (logging-breaker.update text-input dt store.input.text-focus)
-  (if (lovr.headset.wasPressed :hand/left :y)
+  (if (was-pressed :hand/left :y)
     (do (set store.input.text-focus nil)
         :physical)
     :textual))
