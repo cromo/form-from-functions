@@ -52,8 +52,14 @@
 (fn adapt-textual-oculus-touch-input []
   {:stop (was-pressed :hand/left :y)})
 
+(local available-input-adapters
+       {:oculus {:physical adapt-physical-oculus-touch-input
+                 :textual adapt-textual-oculus-touch-input}})
+
+(local input-adapter available-input-adapters.oculus)
+
 (fn physical-update [dt]
-  (match (adapt-physical-oculus-touch-input)
+  (match (input-adapter.physical)
     {:evaluate true}
     (xpcall
      (fn [] (fennel.eval (generate-code store.blocks)))
@@ -83,7 +89,7 @@
 
 (fn textual-update [dt]
   (logging-breaker.update text-input dt store.input.text-focus)
-  (match (adapt-textual-oculus-touch-input)
+  (match (input-adapter.textual)
     {:stop true} (set store.input.text-focus nil))
   (if store.input.text-focus :textual :physical))
 
