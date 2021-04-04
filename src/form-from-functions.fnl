@@ -37,39 +37,55 @@
         nearest-block (. nearby-blocks 1)]
     (set hand.contents nearest-block)))
 
+(fn adapt-physical-oculus-touch-input []
+  {:evaluate (was-pressed :hand/right :a)
+   :save (was-pressed :hand/right :b)
+   :create-block (was-pressed :hand/left :x)
+   :link (or (was-pressed :hand/left :trigger)
+             (was-pressed :hand/right :trigger))
+   :grab {:left (was-pressed :hand/left :grip)
+          :right (was-pressed :hand/right :grip)}
+   :drop {:left (was-released :hand/left :grip)
+          :right (was-released :hand/right :grip)}
+   :write-text (was-pressed :hand/left :y)})
+
+(fn adapt-textual-oculus-touch-input []
+  {:stop (was-pressed :hand/left :y)})
+
 (fn physical-update [dt]
-  (when (was-pressed :hand/right :a)
+  (match (adapt-physical-oculus-touch-input)
+    {:evaluate true}
     (xpcall
      (fn [] (fennel.eval (generate-code store.blocks)))
      (fn [error]
-       (log.error :codegen error))))
-  (when (was-pressed :hand/right :b)
-    (persistence.save-blocks-file store.blocks))
-  (when (was-pressed :hand/left :x)
-    (blocks.add store.blocks (block.init (store.input.hand/left.position:unpack))))
-  (when (and (or (was-pressed :hand/left :trigger)
-                 (was-pressed :hand/right :trigger))
-             store.input.hand/left.contents
-             store.input.hand/right.contents)
-    (block.link store.input.hand/left.contents store.input.hand/right.contents))
-  (each [_ hand-name (pairs [:hand/left :hand/right])]
-        (when (was-pressed hand-name :grip)
-          (grab-nearby-block-if-able (. store.input hand-name) store.blocks))
-        (when (was-released hand-name :grip)
-          (tset store.input hand-name :contents nil)))
-  (if (and (was-pressed :hand/left :y)
-           store.input.hand/left.contents)
+       (log.error :codegen error)))
+    {:save true}
+    (persistence.save-blocks-file store.blocks)
+
+    {:create-block true}
+    (blocks.add store.blocks (block.init (store.input.hand/left.position:unpack)))
+    ({:link true} ? store.input.hand/left.contents store.input.hand/right.contents)
+    (block.link store.input.hand/left.contents store.input.hand/right.contents)
+
+    {:grab {:left true}}
+    (grab-nearby-block-if-able store.input.hand/left store.blocks)
+    {:grab {:right true}}
+    (grab-nearby-block-if-able store.input.hand/right store.blocks)
+    {:drop {:left true}}
+    (set store.input.hand/left.contents nil)
+    {:drop {:right true}}
+    (set store.input.hand/right.contents nil)
+
+    ({:write-text true} ? store.input.hand/left.contents)
     (do (set store.input.text-focus store.input.hand/left.contents)
-        (set store.input.hand/left.contents nil)
-        :textual)
-    :physical))
+        (set store.input.hand/left.contents nil)))
+  (if store.input.text-focus :textual :physical))
 
 (fn textual-update [dt]
   (logging-breaker.update text-input dt store.input.text-focus)
-  (if (was-pressed :hand/left :y)
-    (do (set store.input.text-focus nil)
-        :physical)
-    :textual))
+  (match (adapt-textual-oculus-touch-input)
+    {:stop true} (set store.input.text-focus nil))
+  (if store.input.text-focus :textual :physical))
 
 (fn form-from-functions.update [dt]
   (elapsed-time.update store.elapsed dt)
