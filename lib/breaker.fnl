@@ -14,7 +14,9 @@
   (when breaker.on-fault (breaker.on-fault error-message)))
 
 (fn call-through [breaker callback-name ...]
-  (when (and breaker.running (. breaker.circuit-callbacks callback-name))
+  (when (and breaker.running
+             breaker.circuit-callbacks
+             (. breaker.circuit-callbacks callback-name))
     (xpcall (. breaker.circuit-callbacks callback-name)
             #(fault breaker $1)
             breaker.circuit-state
