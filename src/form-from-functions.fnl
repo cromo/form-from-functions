@@ -2,7 +2,7 @@
                   :wasReleased was-released}} lovr)
 (local fennel (require :third-party/fennel))
 
-(local logging-breaker (require :lib/logging-breaker))
+(local breaker (require :lib/logging-breaker))
 (local text-input (require :lib/disk-text-input))
 (local block (require :lib/block))
 (local blocks (require :lib/blocks))
@@ -20,7 +20,9 @@
 (var user-blocks (blocks.init))
 (var text-focus nil)
 (local elapsed (elapsed-time.init))
-(local text-input (logging-breaker.init text-input))
+(local text-input (breaker.init text-input))
+
+(var user-layer (breaker.init {}))
 
 (fn form-from-functions.load []
   (log.info :config (.. "Save directory: " (lovr.filesystem.getSaveDirectory)))
@@ -58,7 +60,7 @@
   (match (input-adapter.physical)
     {:evaluate true}
     (xpcall
-     (fn [] (fennel.eval (generate-code user-blocks)))
+     (fn [] (set user-layer (breaker.init (fennel.eval (generate-code user-blocks)))))
      (fn [error]
        (log.error :codegen error)))
     {:save true}
@@ -88,7 +90,7 @@
   (if text-focus :textual :physical))
 
 (fn textual-update [dt]
-  (logging-breaker.update text-input dt text-focus)
+  (breaker.update text-input dt text-focus)
   (match (input-adapter.textual)
     {:stop true} (set text-focus nil))
   (if text-focus :textual :physical))
@@ -100,7 +102,8 @@
   (set input-mode
        (match input-mode
          :physical (physical-update dt)
-         :textual (textual-update dt))))
+         :textual (textual-update dt)))
+  (breaker.update user-layer))
 
 (fn form-from-functions.draw []
   (elapsed-time.draw elapsed)
@@ -112,6 +115,7 @@
   (each [_ hand-name (pairs [:left :right])]
         (hand.draw (. hands hand-name)))
   (blocks.draw user-blocks)
-  (logging-breaker.draw text-input))
+  (breaker.draw text-input)
+  (breaker.draw user-layer))
 
 form-from-functions
