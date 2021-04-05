@@ -30,10 +30,15 @@
     (set user-blocks (persistence.load-blocks-file))))
 
 (fn grab-nearby-block-if-able [hand blocks]
-  (let [nearby-blocks (icollect [_ block (ipairs user-blocks)]
-                                (when (< (: (- hand.position block.position) :length) 0.1) block))
-        nearest-block (. nearby-blocks 1)]
-    (set hand.contents nearest-block)))
+  (when (< 0 (length blocks))
+    (local blocks-with-distance
+          (icollect [_ block (ipairs user-blocks)]
+                    [(: (- hand.position block.position) :length) block])) 
+    (table.sort blocks-with-distance (fn [[d1 _] [d2 _]] (< d1 d2))) 
+    (let [[distance nearest-block] (. blocks-with-distance 1)
+           within-reach? (< distance 0.05)]
+      (when within-reach?
+        (set hand.contents nearest-block)))))
 
 (fn adapt-physical-oculus-touch-input []
   {:evaluate (was-pressed :hand/right :a)
