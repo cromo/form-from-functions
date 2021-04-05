@@ -4,7 +4,7 @@
 (local breaker {})
 
 (fn breaker.init [circuit on-fault ...]
-  {:circuit-state (when circuit.init (circuit.init ...))
+  {:circuit-state (when (and circuit circuit.init) (circuit.init ...))
    :circuit-callbacks circuit
    :running true
    : on-fault})

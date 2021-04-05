@@ -13,7 +13,11 @@
           (T "without an init function"
              (fn [T]
                (let [wrapper (breaker.init {})]
-                 (T:assert wrapper "shouldn't crash"))))))
+                 (T:assert wrapper "shouldn't crash"))))
+          (T "with a nil circuit"
+             (fn [T]
+               (local wrapper (breaker.init nil))
+               (T:assert wrapper "shouldn't crash")))))
      (T "in normal operation"
         (fn [T]
           (T "when calling draw without extra arguments"
