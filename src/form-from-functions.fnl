@@ -40,20 +40,26 @@
       (when within-reach?
         (set hand.contents nearest-block)))))
 
-(fn adapt-physical-oculus-touch-input []
-  {:evaluate (was-pressed :hand/right :a)
-   :save (was-pressed :hand/right :b)
-   :reify-block (was-pressed :hand/left :x)
-   :link (or (was-pressed :hand/left :trigger)
-             (was-pressed :hand/right :trigger))
-   :grab {:left (was-pressed :hand/left :grip)
-          :right (was-pressed :hand/right :grip)}
-   :drop {:left (was-released :hand/left :grip)
-          :right (was-released :hand/right :grip)}
-   :write-text (was-pressed :hand/left :y)})
+(fn adapt-physical-oculus-touch-input [query]
+  {:evaluate (was-pressed :right :a)
+   :save (was-pressed :right :b)
+   :create-block (and (was-pressed :left :x)
+                      (query.hand-contains-block? :left))
+   :destroy-block (and (was-pressed :left :x)
+                       (not (query.hand-contains-block? :left)))
+   :link (and (or (was-pressed :left :trigger)
+                  (was-pressed :right :trigger))
+              (query.hand-contains-block? :left)
+              (query.hand-contains-block? :right))
+   :grab {:left (was-pressed :left :grip)
+          :right (was-pressed :right :grip)}
+   :drop {:left (was-released :left :grip)
+          :right (was-released :right :grip)}
+   :write-text (and (was-pressed :left :y)
+                    (query.hand-contains-block? :left))})
 
-(fn adapt-textual-oculus-touch-input []
-  {:stop (was-pressed :hand/left :y)})
+(fn adapt-textual-oculus-touch-input [query]
+  {:stop (was-pressed :left :y)})
 
 (local available-input-adapters
        {:oculus {:physical adapt-physical-oculus-touch-input
@@ -61,8 +67,18 @@
 
 (local input-adapter available-input-adapters.oculus)
 
+;; Provide a read-only way for input adapters to query the environment to
+;; allow them to emit contextual events. These should return booleans so that
+;; they can easily be slotted in to the existing expressions and not affect
+;; their return type. Generally, they should also be called last in a chain of
+;; conditionals because they may be computationally expensive - e.g. scanning
+;; all items in the scene.
+(local
+ environmental-queries
+ {:hand-contains-block? #(not (not (. hands $1 :contents)))})
+
 (fn physical-update [dt]
-  (match (input-adapter.physical)
+  (match (input-adapter.physical environmental-queries)
     {:evaluate true}
     (xpcall
      (fn [] (set user-layer (breaker.init (fennel.eval (generate-code user-blocks)))))
@@ -71,13 +87,13 @@
     {:save true}
     (persistence.save-blocks-file user-blocks)
 
-    ({:reify-block true} ? hands.left.contents)
+    ({:create-block true})
     (let [block-to-remove hands.left.contents]
       (set hands.left.contents nil)
       (blocks.remove user-blocks block-to-remove))
-    {:reify-block true}
+    {:destroy-block true}
     (blocks.add user-blocks (block.init (hands.left.position:unpack)))
-    ({:link true} ? hands.left.contents hands.right.contents)
+    ({:link true})
     (block.link hands.left.contents hands.right.contents)
 
     {:grab {:left true}}
@@ -89,14 +105,14 @@
     {:drop {:right true}}
     (set hands.right.contents nil)
 
-    ({:write-text true} ? hands.left.contents)
+    ({:write-text true})
     (do (set text-focus hands.left.contents)
         (set hands.left.contents nil)))
   (if text-focus :textual :physical))
 
 (fn textual-update [dt]
   (breaker.update text-input dt text-focus)
-  (match (input-adapter.textual)
+  (match (input-adapter.textual environmental-queries)
     {:stop true} (set text-focus nil))
   (if text-focus :textual :physical))
 
