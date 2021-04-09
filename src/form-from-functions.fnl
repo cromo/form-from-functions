@@ -1,4 +1,5 @@
-(local {:headset {:wasPressed was-pressed
+(local {:headset {:isDown is-down
+                  :wasPressed was-pressed
                   :wasReleased was-released}} lovr)
 (local fennel (require :third-party/fennel))
 
@@ -63,6 +64,10 @@
               (query.hand-contains-block? :right))
    :grab {:left (was-pressed :left :grip)
           :right (was-pressed :right :grip)}
+   :clone-grab {:left (and (is-down :left :trigger)
+                           (was-pressed :left :grip))
+                :right (and (is-down :right :trigger)
+                            (was-pressed :right :grip))}
    :drop {:left (was-released :left :grip)
           :right (was-released :right :grip)}
    :write-text (and (was-pressed :left :y)
@@ -106,6 +111,20 @@
     ({:link true})
     (block.link hands.left.contents hands.right.contents)
 
+    {:clone-grab {:left true}}
+    (let [nearest-block (nearest-block-in-grab-distance hands.left.position user-blocks)]
+      (when nearest-block
+        (let [new-block (block.init (hands.left.position:unpack))]
+          (set new-block.text nearest-block.text)
+          (blocks.add user-blocks new-block)
+          (set hands.left.contents new-block))))
+    {:clone-grab {:right true}}
+    (let [nearest-block (nearest-block-in-grab-distance hands.right.position user-blocks)]
+      (when nearest-block
+        (let [new-block (block.init (hands.right.position:unpack))]
+          (set new-block.text nearest-block.text)
+          (blocks.add user-blocks new-block)
+          (set hands.right.contents new-block))))
     {:grab {:left true}}
     (grab-nearby-block-if-able hands.left user-blocks)
     {:grab {:right true}}
