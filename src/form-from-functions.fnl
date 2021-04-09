@@ -29,16 +29,26 @@
   (when (persistence.blocks-file-exists?)
     (set user-blocks (persistence.load-blocks-file))))
 
-(fn grab-nearby-block-if-able [hand blocks]
-  (when (< 0 (length blocks))
-    (local blocks-with-distance
+;; Sort all blocks by distance from a point.
+;; Returns a list of [distance block] tuples.
+(fn blocks-sorted-by-distance [from user-blocks]
+  (local blocks-with-distance
           (icollect [_ block (ipairs user-blocks)]
-                    [(: (- hand.position block.position) :length) block])) 
-    (table.sort blocks-with-distance (fn [[d1 _] [d2 _]] (< d1 d2))) 
-    (let [[distance nearest-block] (. blocks-with-distance 1)
-           within-reach? (< distance 0.05)]
-      (when within-reach?
-        (set hand.contents nearest-block)))))
+                    [(: (- from block.position) :length) block])) 
+  (table.sort blocks-with-distance (fn [[d1 _] [d2 _]] (< d1 d2)))
+  blocks-with-distance)
+
+;; Get the nearest block within grab distance from a point.
+;; Returns a reference to the nearest block or nil if there isn't one in range.
+(fn nearest-block-in-grab-distance [from user-blocks]
+  (local blocks-with-distance (blocks-sorted-by-distance from user-blocks))
+  (when (< 0 (length blocks-with-distance))
+    (let [[[distance nearest-block]] blocks-with-distance
+          within-reach? (< distance 0.05)]
+      (when within-reach? nearest-block))))
+
+(fn grab-nearby-block-if-able [hand blocks]
+  (set hand.contents (nearest-block-in-grab-distance hand.position blocks)))
 
 (fn adapt-physical-oculus-touch-input [query]
   {:evaluate (was-pressed :right :a)
