@@ -76,11 +76,38 @@
 (fn adapt-textual-oculus-touch-input [query]
   {:stop (was-pressed :left :y)})
 
+(fn adapt-physical-vive-touch-input [query]
+  {:evaluate (was-pressed :right :touchpad)
+   :save (was-pressed :right :menu)
+   :create-block (and (was-pressed :left :touchpad)
+                      (query.hand-contains-block? :left))
+   :destroy-block (and (was-pressed :left :touchpad)
+                       (not (query.hand-contains-block? :left)))
+   :link (and (or (was-pressed :left :trigger)
+                  (was-pressed :right :trigger))
+              (query.hand-contains-block? :left)
+              (query.hand-contains-block? :right))
+   :grab {:left (was-pressed :left :grip)
+          :right (was-pressed :right :grip)}
+   :clone-grab {:left (and (is-down :left :trigger)
+                           (was-pressed :left :grip))
+                :right (and (is-down :right :trigger)
+                            (was-pressed :right :grip))}
+   :drop {:left (was-released :left :grip)
+          :right (was-released :right :grip)}
+   :write-text (and (was-pressed :left :menu)
+                    (query.hand-contains-block? :left))})
+
+(fn adapt-textual-vive-touch-input [query]
+  {:stop (was-pressed :left :menu)})
+
 (local available-input-adapters
        {:oculus {:physical adapt-physical-oculus-touch-input
-                 :textual adapt-textual-oculus-touch-input}})
+                 :textual adapt-textual-oculus-touch-input}
+        :vive {:physical adapt-physical-vive-touch-input
+                 :textual adapt-textual-vive-touch-input}})
 
-(local input-adapter available-input-adapters.oculus)
+(local input-adapter available-input-adapters.vive)
 
 ;; Provide a read-only way for input adapters to query the environment to
 ;; allow them to emit contextual events. These should return booleans so that
