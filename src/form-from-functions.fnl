@@ -24,6 +24,8 @@
 (local text-input (breaker.init text-input))
 
 (var user-layer (breaker.init {}))
+;; Can be one of simultaneous, dev, or user.
+(var display-mode :simultaneous)
 
 (fn form-from-functions.load []
   (log.info :config (.. "Save directory: " (lovr.filesystem.getSaveDirectory)))
@@ -145,18 +147,29 @@
     {:stop true} (set text-focus nil))
   (if text-focus :textual :physical))
 
-(fn form-from-functions.update [dt]
-  (elapsed-time.update elapsed dt)
+(fn update-dev [dt]
   (hand.update hands.left)
   (hand.update hands.right)
   (set input-mode
        (match input-mode
          :physical (physical-update dt)
-         :textual (textual-update dt)))
-  (breaker.update user-layer))
+         :textual (textual-update dt))))
 
-(fn form-from-functions.draw []
-  (elapsed-time.draw elapsed)
+(fn form-from-functions.update [dt]
+  (elapsed-time.update elapsed dt)
+  (when (and (was-pressed :left :y)
+             (not (environmental-queries.hand-contains-block? :left)))
+    (set display-mode
+         (match display-mode
+           :simultaneous :dev
+           :dev :user
+           :user :simultaneous)))
+  (match display-mode
+    :simultaneous (do (update-dev dt) (breaker.update user-layer))
+    :dev (update-dev dt)
+    :user (breaker.update user-layer)))
+
+(fn draw-dev []
   (log.draw)
   (lovr.graphics.print
    (.. (hand.format hands.left) "\n    "
@@ -165,7 +178,13 @@
   (each [_ hand-name (pairs [:left :right])]
         (hand.draw (. hands hand-name)))
   (blocks.draw user-blocks)
-  (breaker.draw text-input)
-  (breaker.draw user-layer))
+  (breaker.draw text-input))
+
+(fn form-from-functions.draw []
+  (elapsed-time.draw elapsed)
+  (match display-mode
+    :simultaneous (do (draw-dev) (breaker.draw user-layer))
+    :dev (draw-dev)
+    :user (breaker.draw user-layer)))
 
 form-from-functions
