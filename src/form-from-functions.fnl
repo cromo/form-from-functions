@@ -3,6 +3,7 @@
                   :wasReleased was-released}} lovr)
 (local fennel (require :third-party/fennel))
 
+(local binder (require :lib/binder))
 (local breaker (require :lib/logging-breaker))
 (local text-input (require :lib/disk-text-input))
 (local block (require :lib/block))
@@ -21,7 +22,7 @@
 (var user-blocks (blocks.init))
 (var text-focus nil)
 (local elapsed (elapsed-time.init))
-(local text-input (breaker.init text-input))
+(local text-input (binder.init breaker text-input))
 
 (var user-layer (breaker.init {}))
 ;; Can be one of simultaneous, dev, or user.
@@ -142,7 +143,7 @@
   (if text-focus :textual :physical))
 
 (fn textual-update [dt]
-  (breaker.update text-input dt text-focus)
+  (text-input:update dt text-focus)
   (match (input-adapter.textual environmental-queries)
     {:stop true} (set text-focus nil))
   (if text-focus :textual :physical))
@@ -178,7 +179,7 @@
   (each [_ hand-name (pairs [:left :right])]
         (hand.draw (. hands hand-name)))
   (blocks.draw user-blocks)
-  (breaker.draw text-input))
+  (text-input:draw))
 
 (fn form-from-functions.draw []
   (elapsed-time.draw elapsed)
