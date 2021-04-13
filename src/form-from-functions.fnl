@@ -80,10 +80,10 @@
   {:stop (was-pressed :left :y)})
 
 (local available-input-adapters
-       {:oculus {:physical adapt-physical-oculus-touch-input
-                 :textual adapt-textual-oculus-touch-input}})
+       {"Oculus Quest" {:physical adapt-physical-oculus-touch-input
+                        :textual adapt-textual-oculus-touch-input}})
 
-(local input-adapter available-input-adapters.oculus)
+(local input-adapter (. available-input-adapters (lovr.headset.getName)))
 
 ;; Provide a read-only way for input adapters to query the environment to
 ;; allow them to emit contextual events. These should return booleans so that
