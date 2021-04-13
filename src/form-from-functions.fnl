@@ -28,7 +28,7 @@
 ;; Can be one of simultaneous, dev, or user.
 (var display-mode :simultaneous)
 
-(fn form-from-functions.load []
+(fn form-from-functions.init []
   (log.info :config (.. "Save directory: " (lovr.filesystem.getSaveDirectory)))
   (when (persistence.blocks-file-exists?)
     (set user-blocks (persistence.load-blocks-file))))
@@ -156,7 +156,7 @@
          :physical (physical-update dt)
          :textual (textual-update dt))))
 
-(fn form-from-functions.update [dt]
+(fn form-from-functions.update [self dt]
   (elapsed-time.update elapsed dt)
   (when (and (was-pressed :left :y)
              (not (environmental-queries.hand-contains-block? :left)))
@@ -181,7 +181,7 @@
   (blocks.draw user-blocks)
   (text-input:draw))
 
-(fn form-from-functions.draw []
+(fn form-from-functions.draw [self]
   (elapsed-time.draw elapsed)
   (match display-mode
     :simultaneous (do (draw-dev) (breaker.draw user-layer))

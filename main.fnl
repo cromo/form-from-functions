@@ -1,4 +1,4 @@
-(local app (require :src/form-from-functions))
+(local app (require :src/bootstrap))
 
 (fn lovr.load []
   (when app.load (app.load)))
