@@ -8,6 +8,7 @@
 (local logs (logging.new-log))
 
 (fn logging.log [level tag message]
+  (print (.. level " " tag " " message))
   (table.insert logs {: level : tag : message})
   ;; There's definitely room for optimization here (e.g. circular buffers), but
   ;; working first, fast later.
