@@ -14,7 +14,7 @@
 (local log (require :lib/logging))
 (local persistence (require :src/persistence))
 
-(local form-from-functions {})
+(local development-environment {})
 (local hands
        {:left (hand.init :hand/left)
         :right (hand.init :hand/right)})
@@ -28,7 +28,7 @@
 ;; Can be one of simultaneous, dev, or user.
 (var display-mode :simultaneous)
 
-(fn form-from-functions.init []
+(fn development-environment.init []
   (log.info :config (.. "Save directory: " (lovr.filesystem.getSaveDirectory)))
   (when (persistence.blocks-file-exists?)
     (set user-blocks (persistence.load-blocks-file))))
@@ -186,7 +186,7 @@
          :physical (physical-update dt)
          :textual (textual-update dt))))
 
-(fn form-from-functions.update [self dt]
+(fn development-environment.update [self dt]
   (elapsed-time.update elapsed dt)
   (when (and (was-pressed :left :y)
              (not (environmental-queries.hand-contains-block? :left)))
@@ -211,11 +211,11 @@
   (blocks.draw user-blocks)
   (text-input:draw))
 
-(fn form-from-functions.draw [self]
+(fn development-environment.draw [self]
   (elapsed-time.draw elapsed)
   (match display-mode
     :simultaneous (do (draw-dev) (breaker.draw user-layer))
     :dev (draw-dev)
     :user (breaker.draw user-layer)))
 
-form-from-functions
+development-environment
