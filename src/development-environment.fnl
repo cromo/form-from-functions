@@ -15,19 +15,19 @@
 (local persistence (require :src/persistence))
 
 (local development-environment {})
+
 (local hands
        {:left (hand.init :hand/left)
         :right (hand.init :hand/right)})
-(var text-focus nil)
-(local elapsed (elapsed-time.init))
-(local text-input (binder.init breaker text-input))
-
 (var user-layer (breaker.init {}))
 
 (fn development-environment.init []
   (log.info :config (.. "Save directory: " (lovr.filesystem.getSaveDirectory)))
   {:display-mode :simultaneous  ;; Can be one of simultaneous, dev, or user.
+   :elapsed (elapsed-time.init)
    :input-mode :physical
+   :text-focus nil
+   :text-input (binder.init breaker text-input)
    :user-blocks (if (persistence.blocks-file-exists?)
                   (persistence.load-blocks-file)
                   (blocks.init))})
@@ -162,15 +162,15 @@
     (set hands.right.contents nil)
 
     ({:write-text true})
-    (do (set text-focus hands.left.contents)
+    (do (set self.text-focus hands.left.contents)
         (set hands.left.contents nil)))
-  (if text-focus :textual :physical))
+  (if self.text-focus :textual :physical))
 
-(fn textual-update [dt]
-  (text-input:update dt text-focus)
+(fn textual-update [self dt]
+  (self.text-input:update dt self.text-focus)
   (match (input-adapter.textual environmental-queries)
-    {:stop true} (set text-focus nil))
-  (if text-focus :textual :physical))
+    {:stop true} (set self.text-focus nil))
+  (if self.text-focus :textual :physical))
 
 (fn update-dev [self dt]
   (hand.update hands.left)
@@ -178,10 +178,10 @@
   (set self.input-mode
        (match self.input-mode
          :physical (physical-update self dt)
-         :textual (textual-update dt))))
+         :textual (textual-update self dt))))
 
 (fn development-environment.update [self dt]
-  (elapsed-time.update elapsed dt)
+  (elapsed-time.update self.elapsed dt)
   (when (and (was-pressed :left :y)
              (not (environmental-queries.hand-contains-block? :left)))
     (set self.display-mode
@@ -203,10 +203,10 @@
   (each [_ hand-name (pairs [:left :right])]
         (hand.draw (. hands hand-name)))
   (blocks.draw self.user-blocks)
-  (text-input:draw))
+  (self.text-input:draw))
 
 (fn development-environment.draw [self]
-  (elapsed-time.draw elapsed)
+  (elapsed-time.draw self.elapsed)
   (match self.display-mode
     :simultaneous (do (draw-dev self) (breaker.draw user-layer))
     :dev (draw-dev self)
