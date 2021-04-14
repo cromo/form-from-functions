@@ -18,20 +18,19 @@
 (local hands
        {:left (hand.init :hand/left)
         :right (hand.init :hand/right)})
-(var input-mode :physical)
-(var user-blocks (blocks.init))
 (var text-focus nil)
 (local elapsed (elapsed-time.init))
 (local text-input (binder.init breaker text-input))
 
 (var user-layer (breaker.init {}))
-;; Can be one of simultaneous, dev, or user.
-(var display-mode :simultaneous)
 
 (fn development-environment.init []
   (log.info :config (.. "Save directory: " (lovr.filesystem.getSaveDirectory)))
-  (when (persistence.blocks-file-exists?)
-    (set user-blocks (persistence.load-blocks-file))))
+  {:display-mode :simultaneous  ;; Can be one of simultaneous, dev, or user.
+   :input-mode :physical
+   :user-blocks (if (persistence.blocks-file-exists?)
+                  (persistence.load-blocks-file)
+                  (blocks.init))})
 
 ;; Sort all blocks by distance from a point.
 ;; Returns a list of [distance block] tuples.
@@ -120,43 +119,43 @@
  environmental-queries
  {:hand-contains-block? #(not (not (. hands $1 :contents)))})
 
-(fn physical-update [dt]
+(fn physical-update [self dt]
   (match (input-adapter.physical environmental-queries)
     {:evaluate true}
     (xpcall
-     (fn [] (set user-layer (breaker.init (fennel.eval (generate-code user-blocks)))))
+     (fn [] (set user-layer (breaker.init (fennel.eval (generate-code self.user-blocks)))))
      (fn [error]
        (log.error :codegen error)))
     {:save true}
-    (persistence.save-blocks-file user-blocks)
+    (persistence.save-blocks-file self.user-blocks)
 
     ({:create-block true})
     (let [block-to-remove hands.left.contents]
       (set hands.left.contents nil)
-      (blocks.remove user-blocks block-to-remove))
+      (blocks.remove self.user-blocks block-to-remove))
     {:destroy-block true}
-    (blocks.add user-blocks (block.init (hands.left.position:unpack)))
+    (blocks.add self.user-blocks (block.init (hands.left.position:unpack)))
     ({:link true})
     (block.link hands.left.contents hands.right.contents)
 
     {:clone-grab {:left true}}
-    (let [nearest-block (nearest-block-in-grab-distance hands.left.position user-blocks)]
+    (let [nearest-block (nearest-block-in-grab-distance hands.left.position self.user-blocks)]
       (when nearest-block
         (let [new-block (block.init (hands.left.position:unpack))]
           (set new-block.text nearest-block.text)
-          (blocks.add user-blocks new-block)
+          (blocks.add self.user-blocks new-block)
           (set hands.left.contents new-block))))
     {:clone-grab {:right true}}
-    (let [nearest-block (nearest-block-in-grab-distance hands.right.position user-blocks)]
+    (let [nearest-block (nearest-block-in-grab-distance hands.right.position self.user-blocks)]
       (when nearest-block
         (let [new-block (block.init (hands.right.position:unpack))]
           (set new-block.text nearest-block.text)
-          (blocks.add user-blocks new-block)
+          (blocks.add self.user-blocks new-block)
           (set hands.right.contents new-block))))
     {:grab {:left true}}
-    (grab-nearby-block-if-able hands.left user-blocks)
+    (grab-nearby-block-if-able hands.left self.user-blocks)
     {:grab {:right true}}
-    (grab-nearby-block-if-able hands.right user-blocks)
+    (grab-nearby-block-if-able hands.right self.user-blocks)
     {:drop {:left true}}
     (set hands.left.contents nil)
     {:drop {:right true}}
@@ -173,29 +172,29 @@
     {:stop true} (set text-focus nil))
   (if text-focus :textual :physical))
 
-(fn update-dev [dt]
+(fn update-dev [self dt]
   (hand.update hands.left)
   (hand.update hands.right)
-  (set input-mode
-       (match input-mode
-         :physical (physical-update dt)
+  (set self.input-mode
+       (match self.input-mode
+         :physical (physical-update self dt)
          :textual (textual-update dt))))
 
 (fn development-environment.update [self dt]
   (elapsed-time.update elapsed dt)
   (when (and (was-pressed :left :y)
              (not (environmental-queries.hand-contains-block? :left)))
-    (set display-mode
-         (match display-mode
+    (set self.display-mode
+         (match self.display-mode
            :simultaneous :dev
            :dev :user
            :user :simultaneous)))
-  (match display-mode
-    :simultaneous (do (update-dev dt) (breaker.update user-layer))
-    :dev (update-dev dt)
+  (match self.display-mode
+    :simultaneous (do (update-dev self dt) (breaker.update user-layer))
+    :dev (update-dev self dt)
     :user (breaker.update user-layer)))
 
-(fn draw-dev []
+(fn draw-dev [self]
   (log.draw)
   (lovr.graphics.print
    (.. (hand.format hands.left) "\n    "
@@ -203,14 +202,14 @@
    -0.03 1.3 -2 0.1)
   (each [_ hand-name (pairs [:left :right])]
         (hand.draw (. hands hand-name)))
-  (blocks.draw user-blocks)
+  (blocks.draw self.user-blocks)
   (text-input:draw))
 
 (fn development-environment.draw [self]
   (elapsed-time.draw elapsed)
-  (match display-mode
-    :simultaneous (do (draw-dev) (breaker.draw user-layer))
-    :dev (draw-dev)
+  (match self.display-mode
+    :simultaneous (do (draw-dev self) (breaker.draw user-layer))
+    :dev (draw-dev self)
     :user (breaker.draw user-layer)))
 
 development-environment
