@@ -16,8 +16,6 @@
 
 (local development-environment {})
 
-(var user-layer (breaker.init {}))
-
 (fn development-environment.init []
   (log.info :config (.. "Save directory: " (lovr.filesystem.getSaveDirectory)))
   {:display-mode :simultaneous  ;; Can be one of simultaneous, dev, or user.
@@ -29,7 +27,8 @@
    :text-input (binder.init breaker text-input)
    :user-blocks (if (persistence.blocks-file-exists?)
                   (persistence.load-blocks-file)
-                  (blocks.init))})
+                  (blocks.init))
+   :user-layer (breaker.init {})})
 
 ;; Sort all blocks by distance from a point.
 ;; Returns a list of [distance block] tuples.
@@ -113,7 +112,7 @@
           {:hand-contains-block? #(not (not (. self.hands $1 :contents)))})
     {:evaluate true}
     (xpcall
-     (fn [] (set user-layer (breaker.init (fennel.eval (generate-code self.user-blocks)))))
+     (fn [] (set self.user-layer (breaker.init (fennel.eval (generate-code self.user-blocks)))))
      (fn [error]
        (log.error :codegen error)))
     {:save true}
@@ -180,9 +179,9 @@
            :dev :user
            :user :simultaneous)))
   (match self.display-mode
-    :simultaneous (do (update-dev self dt) (breaker.update user-layer))
+    :simultaneous (do (update-dev self dt) (breaker.update self.user-layer))
     :dev (update-dev self dt)
-    :user (breaker.update user-layer)))
+    :user (breaker.update self.user-layer)))
 
 (fn draw-dev [self]
   (log.draw)
@@ -198,8 +197,8 @@
 (fn development-environment.draw [self]
   (elapsed-time.draw self.elapsed)
   (match self.display-mode
-    :simultaneous (do (draw-dev self) (breaker.draw user-layer))
+    :simultaneous (do (draw-dev self) (breaker.draw self.user-layer))
     :dev (draw-dev self)
-    :user (breaker.draw user-layer)))
+    :user (breaker.draw self.user-layer)))
 
 development-environment
