@@ -1,5 +1,5 @@
 (local block (require :lib/block))
-(local json (require :cjson))
+(local json (require :third-party/dkjson))
 
 (local blocks {})
 
