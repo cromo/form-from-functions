@@ -19,6 +19,7 @@
 (fn development-environment.init []
   (log.info :config (.. "Save directory: " (lovr.filesystem.getSaveDirectory)))
   {:display-mode :simultaneous  ;; Can be one of simultaneous, dev, or user.
+   :display-display-mode-until -1
    :elapsed (elapsed-time.init)
    :hands {:left (hand.init :hand/left)
            :right (hand.init :hand/right)}
@@ -173,6 +174,7 @@
   (elapsed-time.update self.elapsed dt)
   (when (and (was-pressed :left :y)
              (not self.hands.left.contents))
+    (set self.display-display-mode-until (+ self.elapsed.seconds 1))
     (set self.display-mode
          (match self.display-mode
            :simultaneous :dev
@@ -196,6 +198,8 @@
 
 (fn development-environment.draw [self]
   (elapsed-time.draw self.elapsed)
+  (when (< self.elapsed.seconds self.display-display-mode-until)
+    (lovr.graphics.print self.display-mode -0.02 1 -2 0.25))
   (match self.display-mode
     :simultaneous (do (draw-dev self) (breaker.draw self.user-layer))
     :dev (draw-dev self)
