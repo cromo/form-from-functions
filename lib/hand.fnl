@@ -39,11 +39,15 @@
   (self.thumbstick:set (lovr.headset.getAxis self.name :thumbstick))
   (when self.contents (update-contents-pose self)))
 
-(fn hand.draw [{: was-tracked : is-tracked : position}]
+(fn hand.draw [{: was-tracked : is-tracked : position : name}]
   (when was-tracked
-    (let [(x y z) (position:unpack)]
+    (let [(x y z) (position:unpack)
+          poses (lovr.headset.getSkeleton name)]
       (if (not is-tracked) (lovr.graphics.setColor 0.2 0.2 0.2 0.8))
-      (lovr.graphics.sphere x y z 0.03)
+      (if poses
+        (each [i [x y z a rx ry rz] (ipairs poses)]
+              (lovr.graphics.print (tostring i) x y z 0.01 a rx ry rz))
+        (lovr.graphics.sphere x y z 0.03))
       (if (not is-tracked) (lovr.graphics.setColor 1 1 1)))))
 
 hand
