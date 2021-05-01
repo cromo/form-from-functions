@@ -33,7 +33,7 @@
           (_ lines) (font:getWidth log)]
       (lovr.graphics.print
        log
-       0 (+ 1.7 offset) -3
+       0 (+ 0 offset) -3
        0.1
        0
        0 1 0 0
