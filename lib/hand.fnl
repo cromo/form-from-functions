@@ -41,8 +41,9 @@
 
 (fn hand.draw [{: was-tracked : is-tracked : position}]
   (when was-tracked
-    (if (not is-tracked) (lovr.graphics.setColor 0.2 0.2 0.2 0.8))
-    (lovr.graphics.sphere position 0.03)
-    (if (not is-tracked) (lovr.graphics.setColor 1 1 1))))
+    (let [(x y z) (position:unpack)]
+      (if (not is-tracked) (lovr.graphics.setColor 0.2 0.2 0.2 0.8))
+      (lovr.graphics.sphere x y z 0.03)
+      (if (not is-tracked) (lovr.graphics.setColor 1 1 1)))))
 
 hand

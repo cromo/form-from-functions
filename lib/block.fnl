@@ -1,3 +1,4 @@
+(local log (require :lib/logging))
 (local block {})
 
 (lambda block.init [x y z]
@@ -12,9 +13,13 @@
   (let [font (lovr.graphics.getFont)
         (unscaled-width) (font:getWidth block.text)
         inch 0.0254
-        width (* inch unscaled-width)]
-    (lovr.graphics.box :line block.position (+ 0.03 width) 0.03 0.03 block.rotation)
-    (lovr.graphics.print block.text block.position inch block.rotation)
+        width (* inch unscaled-width)
+        (x y z) (block.position:unpack)]
+    (lovr.graphics.box :line
+                       x y z
+                       (+ 0.03 width) 0.03 0.03
+                       (block.rotation:unpack))
+    (lovr.graphics.print block.text x y z inch block.rotation)
     (when block.next
       (let [next block.next
             (next-unscaled-width) (font:getWidth next.text)
