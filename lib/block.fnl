@@ -26,11 +26,13 @@
      (+ block.position start-offset)
      (- next.position end-offset))))
 
-(fn block.draw-box [block]
+(fn block.draw-box [block color]
   (let [font (lovr.graphics.getFont)
         (unscaled-width) (font:getWidth block.text)
         width (* inch unscaled-width)
-        (x y z) (block.position:unpack)]
+        (x y z) (block.position:unpack)
+        color (or color [1 1 1])]
+    (lovr.graphics.setColor color)
     (lovr.graphics.box :line
                        x y z
                        (+ 0.03 width) 0.03 0.03

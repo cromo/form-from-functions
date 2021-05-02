@@ -29,8 +29,8 @@
   ;; Draw each kind of object separately to help LOVR's batching. Failure to do
   ;; so can lead to excessive draw calls and shader switches, which can tank
   ;; framerate.
-  (each [_ block-state (ipairs self)]
-        (block.draw-box block-state))
+  (each [i block-state (ipairs self)]
+        (block.draw-box block-state (when (= i 1) [0 1 0])))
   (each [_ block-state (ipairs self)]
         (block.draw-link block-state))
   (each [_ block-state (ipairs self)]
