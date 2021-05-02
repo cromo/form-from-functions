@@ -10,7 +10,7 @@
 (local blocks (require :lib/blocks))
 (local {: generate-code} (require :lib/code-gen))
 (local elapsed-time (require :lib/elapsed-time))
-(local hand (require :lib/hand))
+(local hand (require :lib/input/hand))
 (local log (require :lib/logging))
 (local persistence (require :src/persistence))
 
