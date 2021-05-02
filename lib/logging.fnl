@@ -33,11 +33,11 @@
           (_ lines) (font:getWidth log)]
       (lovr.graphics.print
        log
-       0 (+ 0 offset) -3
-       0.1
+       0 (+ 0 offset) 0
+       1
        0
        0 1 0 0
-       :center :bottom)
-      (set offset (+ offset (* 0.1 lines))))))
+       :left :bottom)
+      (set offset (+ offset (* 1 lines))))))
 
 logging

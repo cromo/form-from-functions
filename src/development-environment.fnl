@@ -186,7 +186,12 @@
     :user (breaker.update self.user-layer)))
 
 (fn draw-dev [self]
+  (lovr.graphics.push)
+  (lovr.graphics.translate -2 0 -3)
+  (lovr.graphics.scale 0.1)
   (log.draw)
+  (lovr.graphics.pop)
+
   (lovr.graphics.print
    (.. (hand.format self.hands.left) "\n    "
        (hand.format self.hands.right))
