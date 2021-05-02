@@ -49,6 +49,7 @@
 (fn disk-text-input.draw [state]
   ;; Draw the selected character in the center
   (lovr.graphics.print state.selected-character)
+  ;; Draw the current layer around it in a circle
   (let [offset (vec3 -1 0 0)
         alphabet (. character-layers state.layer)
         character-rotation (quat (/ (* 2 math.pi) (length alphabet)) 0 0 1)]
