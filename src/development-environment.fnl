@@ -199,7 +199,14 @@
   (each [_ hand-name (pairs [:left :right])]
         (hand.draw (. self.hands hand-name)))
   (blocks.draw self.user-blocks)
-  (self.text-input:draw))
+
+  (lovr.graphics.push)
+  (lovr.graphics.translate (self.hands.left.position:unpack))
+  (lovr.graphics.rotate (self.hands.left.rotation:unpack))
+  (lovr.graphics.translate 0 0.1 -0.1)
+  (lovr.graphics.rotate (- (/ math.pi 4)) 1 0 0)
+  (self.text-input:draw)
+  (lovr.graphics.pop))
 
 (fn development-environment.draw [self]
   (elapsed-time.draw self.elapsed)

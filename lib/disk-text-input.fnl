@@ -47,6 +47,6 @@
       (set state.layer (wrap (+ 1 state.layer) (length character-layers))))))
 
 (fn disk-text-input.draw [state]
-  (lovr.graphics.print state.selected-character 0 1 -0.5 0.05))
+  (lovr.graphics.print state.selected-character 0 0 0 0.05))
 
 disk-text-input
