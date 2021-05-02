@@ -18,9 +18,7 @@
         next block.next
         (next-unscaled-width) (font:getWidth next.text)
         next-width (* inch next-unscaled-width)
-        start-center (vec3 block.position)
         start-offset (vec3 (* 0.5 (+ 0.03 width)) 0 0)
-        end-center (vec3 next.position)
         end-offset (vec3 (* 0.5 (+ 0.03 next-width)) 0 0)]
     (block.rotation:mul start-offset)
     (next.rotation:mul end-offset)
