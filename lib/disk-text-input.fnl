@@ -47,6 +47,13 @@
       (set state.layer (wrap (+ 1 state.layer) (length character-layers))))))
 
 (fn disk-text-input.draw [state]
-  (lovr.graphics.print state.selected-character 0 0 0 0.05))
+  ;; Draw the selected character in the center
+  (lovr.graphics.print state.selected-character)
+  (let [offset (vec3 -1 0 0)
+        alphabet (. character-layers state.layer)
+        character-rotation (quat (/ (* 2 math.pi) (length alphabet)) 0 0 1)]
+    (for [i 1 (length alphabet)]
+      (lovr.graphics.print (alphabet:sub i i) offset.x offset.y 0 0.25)
+      (character-rotation:mul offset))))
 
 disk-text-input
