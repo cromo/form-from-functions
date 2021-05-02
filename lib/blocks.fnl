@@ -26,8 +26,15 @@
     (when index (table.remove self index))))
 
 (fn blocks.draw [self]
-  (each [i block-state (ipairs self)]
-        (block.draw block-state)))
+  ;; Draw each kind of object separately to help LOVR's batching. Failure to do
+  ;; so can lead to excessive draw calls and shader switches, which can tank
+  ;; framerate.
+  (each [_ block-state (ipairs self)]
+        (block.draw-box block-state))
+  (each [_ block-state (ipairs self)]
+        (block.draw-link block-state))
+  (each [_ block-state (ipairs self)]
+        (block.draw-text block-state)))
 
 (fn blocks.serialize [blocks]
   (json.encode (icollect [_ block (ipairs blocks)]
