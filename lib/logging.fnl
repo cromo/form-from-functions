@@ -9,7 +9,7 @@
 
 (fn logging.log [level tag message]
   (print (.. level " " tag " " message))
-  (table.insert logs {: level : tag : message})
+  (table.insert logs {:timestamp (os.time) : level : tag : message})
   ;; There's definitely room for optimization here (e.g. circular buffers), but
   ;; working first, fast later.
   (when (< 100 (length logs))
@@ -21,8 +21,8 @@
 (fn logging.debug [tag message] (logging.log :debug tag message))
 (fn logging.verbose [tag message] (logging.log :verbose tag message))
 
-(fn format-log [{: level : tag : message}]
-  (.. level " " tag " " message))
+(fn format-log [{: timestamp : level : tag : message}]
+  (.. (os.date :%FT%T%z timestamp) " " level " " tag " " message))
 
 (fn logging.draw []
   (var offset 0)
