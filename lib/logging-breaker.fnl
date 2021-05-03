@@ -1,4 +1,4 @@
-(local breaker (require :lib/breaker))
+(local breaker (require :lib/adapters/breaker))
 (local log (require :lib/logging))
 
 (local logging-breaker {:update breaker.update :draw breaker.draw})

@@ -1,4 +1,4 @@
-(local breaker (require :lib/breaker))
+(local breaker (require :lib/adapters/breaker))
 
 (T "A breaker layer"
    (fn [T]
