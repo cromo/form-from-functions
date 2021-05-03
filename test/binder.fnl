@@ -1,4 +1,4 @@
-(local binder (require :lib/binder))
+(local binder (require :lib/adapters/binder))
 
 (T "A binder layer"
    (fn [T]

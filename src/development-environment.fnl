@@ -3,7 +3,7 @@
                   :wasReleased was-released}} lovr)
 (local fennel (require :third-party/fennel))
 
-(local binder (require :lib/binder))
+(local binder (require :lib/adapters/binder))
 (local breaker (require :lib/logging-breaker))
 (local text-input (require :lib/input/disk-text-input))
 (local block (require :lib/block))
