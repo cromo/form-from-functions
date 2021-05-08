@@ -1,3 +1,8 @@
+--[[
+    This is a module of knife, which is licensed under the MIT license.
+    https://github.com/airstruck/knife
+]]
+
 local test, testAssert, testError
 
 -- Create a node representing a test section

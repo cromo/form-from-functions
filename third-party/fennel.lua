@@ -1,3 +1,8 @@
+--[[
+  This is fennel 0.8.1, which is licensed under the MIT license.
+  https://fennel-lang.org/
+]]
+
 package.preload["fennel.repl"] = package.preload["fennel.repl"] or function(...)
   local utils = require("fennel.utils")
   local parser = require("fennel.parser")
