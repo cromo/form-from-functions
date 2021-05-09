@@ -12,5 +12,7 @@ all: $(LUA_OUT)
 clean:
 	rm -f $(LUA_OUT)
 
+# Mark unpack as global because it's global in LuaJIT (which is what LOVR uses)
+# but not in Lua 5.4 (which is what the tests use).
 test:
-	./fennel.exe third-party/knife-test.fnl $(TEST)
+	./fennel.exe --globals unpack third-party/knife-test.fnl $(TEST)
