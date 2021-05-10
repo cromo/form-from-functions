@@ -7,54 +7,47 @@
     (let [(x y) (lovr.headset.getAxis :hand/left :thumbstick)
           centered? (and (< -0.001 x 0.001) (< -0.001 y 0.001))
           append-character (lovr.headset.wasPressed :hand/right :a)
-          backspace (lovr.headset.wasPressed :hand/right :b)
-          next-layer (lovr.headset.wasPressed :hand/left :thumbstick)] 
+          backspace (lovr.headset.wasPressed :hand/right :b)] 
       {: x : y
        : centered?
-       : append-character : backspace
-       : next-layer}))})
+       : append-character : backspace}))})
 
 (local input-adapter
        (match (lovr.headset.getName)
          "Oculus Quest" available-input-adapters.oculus-touch))
 
-(local disk-text-input {})
+(local module {})
 
-(local character-layers ["abcdefghijklmnopqrstuvwxyz"
-                         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                         "1234567890-=.,;/'\\[]`"
-                         "!@#$%^&*()_+<>:?\"|{}~"])
+(local default-alphabet " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~")
 
-(fn disk-text-input.init []
-  {:selected-character " "
-   :layer 1})
+(fn module.init [alphabet]
+  {:alphabet (if alphabet alphabet default-alphabet)
+   :selected-character " "})
 
-(fn disk-text-input.update [state dt container]
+(fn module.update [state dt container]
   (let [{: x : y : centered?
-         : append-character : backspace : next-layer} (input-adapter)
+         : append-character : backspace} (input-adapter)
         angle-radians (+ math.pi (math.atan2 y x))
-        angle-percent (* (/ angle-radians (* 2 math.pi)) (length (. character-layers state.layer)))
+        angle-percent (* (/ angle-radians (* 2 math.pi)) (length state.alphabet))
         character-index-raw (math.ceil angle-percent)
         character-index (if (= 0 character-index-raw) 1 character-index-raw)]
     (set state.selected-character
          (if centered? " "
-             (: (. character-layers state.layer) :sub character-index character-index))) 
+             (state.alphabet:sub character-index character-index))) 
     (when append-character
       (set container.text (.. container.text state.selected-character))) 
     (when backspace
-      (set container.text (container.text:sub 1 -2))) 
-    (when next-layer
-      (set state.layer (wrap (+ 1 state.layer) (length character-layers))))))
+      (set container.text (container.text:sub 1 -2)))))
 
-(fn disk-text-input.draw [state]
+(fn module.draw [state]
   ;; Draw the selected character in the center
   (lovr.graphics.print state.selected-character)
-  ;; Draw the current layer around it in a circle
+  ;; Draw the alphabet around it in a circle
   (let [offset (vec3 -1 0 0)
-        alphabet (. character-layers state.layer)
+        alphabet state.alphabet
         character-rotation (quat (/ (* 2 math.pi) (length alphabet)) 0 0 1)]
     (for [i 1 (length alphabet)]
       (lovr.graphics.print (alphabet:sub i i) offset.x offset.y 0 0.25)
       (character-rotation:mul offset))))
 
-disk-text-input
+module

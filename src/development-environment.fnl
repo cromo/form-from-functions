@@ -5,7 +5,7 @@
 
 (local binder (require :lib/adapters/binder))
 (local breaker (require :lib/logging-breaker))
-(local text-input (require :lib/input/disk-text-input))
+(local text-input (require :lib/input/layered-radial-text-input))
 (local block (require :lib/block))
 (local blocks (require :lib/blocks))
 (local {: generate-code} (require :lib/code-gen))
