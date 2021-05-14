@@ -14,18 +14,30 @@
 (local hand (require :lib/input/hand))
 (local log (require :lib/logging))
 (local persistence (require :src/persistence))
+(local scxml (require :lib/scxml))
 
 (local development-environment {})
 
-(local machine (lxsc:parse "
-<scxml xmlns=\"http://www.w3.org/2005/07/scxml\" version=\"1.0\" initial=\"off\">
-  <state id=\"off\">
-    <transition event=\"flick\" target=\"on\"></transition>
-  </state>
-  <state id=\"on\">
-    <transition event=\"flick\" target=\"off\"></transition>
-  </state>
-</scxml>"))
+(local machine-scxml
+       (let [{: statechart : state : transition} scxml]
+         (statechart
+          {}
+          [(state
+            {:id :off}
+            [(transition {:event :flick :target :on})])
+           (state
+            {:id :on}
+            [(transition {:event :flick :target :off})])])))
+(local machine (lxsc:parse machine-scxml))
+;; (local machine (lxsc:parse "
+;; <scxml xmlns=\"http://www.w3.org/2005/07/scxml\" version=\"1.0\" initial=\"off\">
+;;   <state id=\"off\">
+;;     <transition event=\"flick\" target=\"on\"></transition>
+;;   </state>
+;;   <state id=\"on\">
+;;     <transition event=\"flick\" target=\"off\"></transition>
+;;   </state>
+;; </scxml>"))
 (machine:start)
 
 (fn development-environment.init []
