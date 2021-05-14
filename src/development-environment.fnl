@@ -22,12 +22,12 @@
        (let [{: statechart : state : transition} scxml]
          (statechart
           {}
-          [(state
-            {:id :off}
-            [(transition {:event :flick :target :on})])
-           (state
-            {:id :on}
-            [(transition {:event :flick :target :off})])])))
+          (state
+           {:id :off}
+           (transition {:event :flick :target :on}))
+          (state
+           {:id :on}
+           (transition {:event :flick :target :off})))))
 (local machine (lxsc:parse machine-scxml))
 ;; (local machine (lxsc:parse "
 ;; <scxml xmlns=\"http://www.w3.org/2005/07/scxml\" version=\"1.0\" initial=\"off\">
