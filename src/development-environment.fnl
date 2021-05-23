@@ -36,23 +36,24 @@
                             (transition {:event :change-input-mode :target :physical}))))
     (state {:id :user-only}
            (transition {:event :change-display-mode :target :dev-visible})))))
-(local machine (lxsc:parse machine-scxml))
-(machine:start)
 
 (fn development-environment.init []
   (log.info :config (.. "Save directory: " (lovr.filesystem.getSaveDirectory)))
-  {:display-mode :simultaneous  ;; Can be one of simultaneous, dev, or user.
-   :display-display-mode-until -1
-   :elapsed (elapsed-time.init)
-   :hands {:left (hand.init :hand/left)
-           :right (hand.init :hand/right)}
-   :input-mode :physical
-   :text-focus nil
-   :text-input (binder.init breaker text-input)
-   :user-blocks (if (persistence.blocks-file-exists?)
-                  (persistence.load-blocks-file)
-                  (blocks.init))
-   :user-layer (breaker.init {})})
+  (let [machine (lxsc:parse machine-scxml)]
+    (machine:start)
+    {:display-mode :simultaneous  ;; Can be one of simultaneous, dev, or user.
+     :display-display-mode-until -1
+     :elapsed (elapsed-time.init)
+     :hands {:left (hand.init :hand/left)
+             :right (hand.init :hand/right)}
+     :input-mode :physical
+     :text-focus nil
+     : machine
+     :text-input (binder.init breaker text-input)
+     :user-blocks (if (persistence.blocks-file-exists?)
+                    (persistence.load-blocks-file)
+                    (blocks.init))
+     :user-layer (breaker.init {})}))
 
 ;; Sort all blocks by distance from a point.
 ;; Returns a list of [distance block] tuples.
@@ -187,11 +188,11 @@
 
 (fn update-dev [self dt]
   (when (was-pressed :right :thumbstick)
-    (machine:fireEvent :change-display-mode))
+    (self.machine:fireEvent :change-display-mode))
   (when (was-pressed :left :thumbstick)
-    (machine:fireEvent :change-input-mode))
-  (machine:step)
-  (log.info :statechart (.. "active: " (table.concat (icollect [id x (pairs (machine:activeStateIds))] (when (= (type id) "string") (.. id ":" x))) " | ")))
+    (self.machine:fireEvent :change-input-mode))
+  (self.machine:step)
+  (log.info :statechart (.. "active: " (table.concat (icollect [id x (pairs (self.machine:activeStateIds))] (when (= (type id) "string") (.. id ":" x))) " | ")))
   (hand.update self.hands.left)
   (hand.update self.hands.right)
   (set self.input-mode
