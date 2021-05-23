@@ -23,7 +23,7 @@
  (let [{: statechart : state : transition : parallel : send} scxml]
    (statechart
     {}
-    (parallel {}
+    (parallel {:id :development-environment}
               (state {} (parallel {:id :development-controls-active}
                                (state {:id :dev-visible}
                                       (state {:id :user-also-visible}
@@ -37,7 +37,7 @@
                                              (transition {:event :change-input-mode :target :physical}))))
                      (state {:id :user-only}
                             (transition {:event :change-display-mode :target :dev-visible})))
-              (state {}
+              (state {:id :mode-display}
                      (state {:id :mode-display-off}
                             (transition {:event :change-display-mode
                                          :target :mode-display-on}
@@ -213,17 +213,19 @@
 (fn development-environment.update [self dt]
   (elapsed-time.update self.elapsed dt)
   (when (and (was-pressed :left :y)
-             (not self.hands.left.contents))
-    (set self.display-display-mode-until (+ self.elapsed.seconds 1))
-    (set self.display-mode
-         (match self.display-mode
-           :simultaneous :dev
-           :dev :user
-           :user :simultaneous)))
-  (match self.display-mode
-    :simultaneous (do (update-dev self dt) (breaker.update self.user-layer))
-    :dev (update-dev self dt)
-    :user (breaker.update self.user-layer)))
+             (not self.hands.left.contents)
+             (or (self.machine:isActive :physical)
+                 (self.machine:isActive :user-only)))
+    (self.machine:fireEvent :change-display-mode))
+  (self.machine:step)
+  (match (self.machine:activeStateIds)
+    {:dev-visible _ :user-also-visible _} (do (update-dev self dt) (breaker.update self.user-layer))
+    {:dev-visible _} (update-dev self dt)
+    {:user-only _} (breaker.update self.user-layer))
+  (let [active-states (self.machine:activeStateIds)]
+    (when active-states.dev-visible (update-dev self dt))
+    (when (or active-states.user-also-visible active-states.user-only)
+      (breaker.update self.user-layer dt))))
 
 (fn draw-dev [self]
   (lovr.graphics.push)
@@ -254,9 +256,9 @@
   (elapsed-time.draw self.elapsed)
   (when (< self.elapsed.seconds self.display-display-mode-until)
     (lovr.graphics.print self.display-mode -0.02 1 -2 0.25))
-  (match self.display-mode
-    :simultaneous (do (draw-dev self) (breaker.draw self.user-layer))
-    :dev (draw-dev self)
-    :user (breaker.draw self.user-layer)))
+  (let [active-states (self.machine:activeStateIds)]
+    (when active-states.dev-visible (draw-dev self))
+    (when (or active-states.user-also-visible active-states.user-only)
+      (breaker.draw self.user-layer))))
 
 development-environment
