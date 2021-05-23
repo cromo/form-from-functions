@@ -27,14 +27,18 @@
               (state {} (parallel {:id :development-controls-active}
                                (state {:id :dev-visible}
                                       (state {:id :user-also-visible}
-                                             (transition {:event :change-display-mode :target :dev-only}))
+                                             (transition {:event :change-display-mode
+                                                          :target :dev-only}))
                                       (state {:id :dev-only}
-                                             (transition {:event :change-display-mode :target :user-only})))
+                                             (transition {:event :change-display-mode
+                                                          :target :user-only})))
                                (state {:id :input-mode}
                                       (state {:id :physical}
-                                             (transition {:event :change-input-mode :target :textual}))
+                                             (transition {:event :change-input-mode
+                                                          :target :textual}))
                                       (state {:id :textual}
-                                             (transition {:event :change-input-mode :target :physical}))))
+                                             (transition {:event :change-input-mode
+                                                          :target :physical}))))
                      (state {:id :user-only}
                             (transition {:event :change-display-mode :target :dev-visible})))
               (state {:id :mode-display}
