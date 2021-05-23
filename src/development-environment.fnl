@@ -218,7 +218,6 @@
   (when (was-pressed :left :thumbstick)
     (self.machine:fireEvent :change-input-mode))
   (self.machine:step)
-  (log.info :statechart (.. "active: " (table.concat (icollect [id x (pairs (self.machine:activeStateIds))] (when (= (type id) "string") (.. id ":" x))) " | ")))
   (let [active-states (self.machine:activeStateIds)]
     (when active-states.dev-visible (update-dev self dt))
     (when (or active-states.user-also-visible active-states.user-only)
