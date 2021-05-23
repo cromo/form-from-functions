@@ -213,10 +213,6 @@
              (or (self.machine:isActive :physical)
                  (self.machine:isActive :user-only)))
     (self.machine:fireEvent :change-display-mode))
-  (when (was-pressed :right :thumbstick)
-    (self.machine:fireEvent :change-display-mode))
-  (when (was-pressed :left :thumbstick)
-    (self.machine:fireEvent :change-input-mode))
   (self.machine:step)
   (let [active-states (self.machine:activeStateIds)]
     (when active-states.dev-visible (update-dev self dt))
