@@ -197,12 +197,6 @@
   (if self.text-focus :textual :physical))
 
 (fn update-dev [self dt]
-  (when (was-pressed :right :thumbstick)
-    (self.machine:fireEvent :change-display-mode))
-  (when (was-pressed :left :thumbstick)
-    (self.machine:fireEvent :change-input-mode))
-  (self.machine:step)
-  (log.info :statechart (.. "active: " (table.concat (icollect [id x (pairs (self.machine:activeStateIds))] (when (= (type id) "string") (.. id ":" x))) " | ")))
   (hand.update self.hands.left)
   (hand.update self.hands.right)
   (set self.input-mode
@@ -217,7 +211,12 @@
              (or (self.machine:isActive :physical)
                  (self.machine:isActive :user-only)))
     (self.machine:fireEvent :change-display-mode))
+  (when (was-pressed :right :thumbstick)
+    (self.machine:fireEvent :change-display-mode))
+  (when (was-pressed :left :thumbstick)
+    (self.machine:fireEvent :change-input-mode))
   (self.machine:step)
+  (log.info :statechart (.. "active: " (table.concat (icollect [id x (pairs (self.machine:activeStateIds))] (when (= (type id) "string") (.. id ":" x))) " | ")))
   (match (self.machine:activeStateIds)
     {:dev-visible _ :user-also-visible _} (do (update-dev self dt) (breaker.update self.user-layer))
     {:dev-visible _} (update-dev self dt)
