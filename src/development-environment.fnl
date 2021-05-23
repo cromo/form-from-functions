@@ -18,16 +18,24 @@
 
 (local development-environment {})
 
-(local machine-scxml
-       (let [{: statechart : state : transition} scxml]
-         (statechart
-          {}
-          (state
-           {:id :off}
-           (transition {:event :flick :target :on}))
-          (state
-           {:id :on}
-           (transition {:event :flick :target :off})))))
+(local
+ machine-scxml
+ (let [{: statechart : state : transition : parallel} scxml]
+   (statechart
+    {}
+    (parallel {:id :development-controls-active}
+              (state {:id :dev-visible}
+                     (state {:id :user-also-visible}
+                            (transition {:event :change-display-mode :target :dev-only}))
+                     (state {:id :dev-only}
+                            (transition {:event :change-display-mode :target :user-only})))
+              (state {:id :input-mode}
+                     (state {:id :physical}
+                            (transition {:event :change-input-mode :target :textual}))
+                     (state {:id :textual}
+                            (transition {:event :change-input-mode :target :physical}))))
+    (state {:id :user-only}
+           (transition {:event :change-display-mode :target :dev-visible})))))
 (local machine (lxsc:parse machine-scxml))
 (machine:start)
 
@@ -179,9 +187,11 @@
 
 (fn update-dev [self dt]
   (when (was-pressed :right :thumbstick)
-    (machine:fireEvent :flick)
-    (machine:step)
-    (log.info :statechart (.. "off: " (tostring (machine:isActive :off)) " on: " (tostring (machine:isActive :on)))))
+    (machine:fireEvent :change-display-mode))
+  (when (was-pressed :left :thumbstick)
+    (machine:fireEvent :change-input-mode))
+  (machine:step)
+  (log.info :statechart (.. "active: " (table.concat (icollect [id x (pairs (machine:activeStateIds))] (when (= (type id) "string") (.. id ":" x))) " | ")))
   (hand.update self.hands.left)
   (hand.update self.hands.right)
   (set self.input-mode
