@@ -2,6 +2,7 @@
                   :wasPressed was-pressed
                   :wasReleased was-released}} lovr)
 (local fennel (require :third-party/fennel))
+(local lxsc (require :third-party/lxsc))
 
 (local binder (require :lib/adapters/binder))
 (local breaker (require :lib/logging-breaker))
@@ -13,23 +14,57 @@
 (local hand (require :lib/input/hand))
 (local log (require :lib/logging))
 (local persistence (require :src/persistence))
+(local scxml (require :lib/scxml))
 
 (local development-environment {})
 
+(local
+ machine-scxml
+ (let [{: statechart : state : transition : parallel : send} scxml]
+   (statechart
+    {}
+    (parallel {:id :development-environment}
+              (state {} (parallel {:id :development-controls-active}
+                               (state {:id :dev-visible}
+                                      (state {:id :user-also-visible}
+                                             (transition {:event :change-display-mode
+                                                          :target :dev-only}))
+                                      (state {:id :dev-only}
+                                             (transition {:event :change-display-mode
+                                                          :target :user-only})))
+                               (state {:id :input-mode}
+                                      (state {:id :physical}
+                                             (transition {:event :change-input-mode
+                                                          :target :textual}))
+                                      (state {:id :textual}
+                                             (transition {:event :change-input-mode
+                                                          :target :physical}))))
+                     (state {:id :user-only}
+                            (transition {:event :change-display-mode :target :dev-visible})))
+              (state {:id :mode-display}
+                     (state {:id :mode-display-off}
+                            (transition {:event :change-display-mode
+                                         :target :mode-display-on}
+                                        (send {:event :mode-display-timed-out
+                                               :delay :1s})))
+                     (state {:id :mode-display-on}
+                            (transition {:event :mode-display-timed-out
+                                         :target :mode-display-off})))))))
+
 (fn development-environment.init []
   (log.info :config (.. "Save directory: " (lovr.filesystem.getSaveDirectory)))
-  {:display-mode :simultaneous  ;; Can be one of simultaneous, dev, or user.
-   :display-display-mode-until -1
-   :elapsed (elapsed-time.init)
-   :hands {:left (hand.init :hand/left)
-           :right (hand.init :hand/right)}
-   :input-mode :physical
-   :text-focus nil
-   :text-input (binder.init breaker text-input)
-   :user-blocks (if (persistence.blocks-file-exists?)
-                  (persistence.load-blocks-file)
-                  (blocks.init))
-   :user-layer (breaker.init {})})
+  (let [machine (lxsc:parse machine-scxml)]
+    (machine:start)
+    {:elapsed (elapsed-time.init)
+     :hands {:left (hand.init :hand/left)
+             :right (hand.init :hand/right)}
+     :text-focus nil
+     : machine
+     :text-input (binder.init breaker text-input)
+     :user-blocks (if (persistence.blocks-file-exists?)
+                    (persistence.load-blocks-file)
+                    (blocks.init))
+     :user-layer (breaker.init {})}))
 
 ;; Sort all blocks by distance from a point.
 ;; Returns a list of [distance block] tuples.
@@ -152,38 +187,41 @@
     (set self.hands.right.contents nil)
 
     ({:write-text true})
-    (do (set self.text-focus self.hands.left.contents)
+    (do (self.machine:fireEvent :change-input-mode)
+        (set self.text-focus self.hands.left.contents)
         (set self.hands.left.contents nil)))
   (if self.text-focus :textual :physical))
 
 (fn textual-update [self dt]
   (self.text-input:update dt self.text-focus)
   (match (input-adapter.textual environmental-queries)
-    {:stop true} (set self.text-focus nil))
+    {:stop true} (do (self.machine:fireEvent :change-input-mode)
+                     (set self.text-focus nil)))
   (if self.text-focus :textual :physical))
 
 (fn update-dev [self dt]
   (hand.update self.hands.left)
   (hand.update self.hands.right)
-  (set self.input-mode
-       (match self.input-mode
-         :physical (physical-update self dt)
-         :textual (textual-update self dt))))
+  (let [{: physical : textual} (self.machine:activeStateIds)]
+    (when physical (physical-update self dt))
+    (when textual (textual-update self dt))))
 
 (fn development-environment.update [self dt]
   (elapsed-time.update self.elapsed dt)
   (when (and (was-pressed :left :y)
-             (not self.hands.left.contents))
-    (set self.display-display-mode-until (+ self.elapsed.seconds 1))
-    (set self.display-mode
-         (match self.display-mode
-           :simultaneous :dev
-           :dev :user
-           :user :simultaneous)))
-  (match self.display-mode
-    :simultaneous (do (update-dev self dt) (breaker.update self.user-layer))
-    :dev (update-dev self dt)
-    :user (breaker.update self.user-layer)))
+             (not self.hands.left.contents)
+             (or (self.machine:isActive :physical)
+                 (self.machine:isActive :user-only)))
+    (self.machine:fireEvent :change-display-mode))
+  (when (was-pressed :right :thumbstick)
+    (self.machine:fireEvent :change-display-mode))
+  (when (was-pressed :left :thumbstick)
+    (self.machine:fireEvent :change-input-mode))
+  (self.machine:step)
+  (let [active-states (self.machine:activeStateIds)]
+    (when active-states.dev-visible (update-dev self dt))
+    (when (or active-states.user-also-visible active-states.user-only)
+      (breaker.update self.user-layer dt))))
 
 (fn draw-dev [self]
   (lovr.graphics.push)
@@ -200,23 +238,28 @@
         (hand.draw (. self.hands hand-name)))
   (blocks.draw self.user-blocks)
 
-  (when (= self.input-mode :textual)
-    (lovr.graphics.push)
-    (lovr.graphics.translate (self.hands.left.position:unpack))
-    (lovr.graphics.rotate (self.hands.left.rotation:unpack))
-    (lovr.graphics.translate 0 0.1 -0.1)
-    (lovr.graphics.rotate (- (/ math.pi 4)) 1 0 0)
-    (lovr.graphics.scale 0.05)
-    (self.text-input:draw)
-    (lovr.graphics.pop)))
+  (let [{: textual} (self.machine:activeStateIds)]
+    (when textual
+      (lovr.graphics.push)
+      (lovr.graphics.translate (self.hands.left.position:unpack))
+      (lovr.graphics.rotate (self.hands.left.rotation:unpack))
+      (lovr.graphics.translate 0 0.1 -0.1)
+      (lovr.graphics.rotate (- (/ math.pi 4)) 1 0 0)
+      (lovr.graphics.scale 0.05)
+      (self.text-input:draw)
+      (lovr.graphics.pop))))
 
 (fn development-environment.draw [self]
   (elapsed-time.draw self.elapsed)
-  (when (< self.elapsed.seconds self.display-display-mode-until)
-    (lovr.graphics.print self.display-mode -0.02 1 -2 0.25))
-  (match self.display-mode
-    :simultaneous (do (draw-dev self) (breaker.draw self.user-layer))
-    :dev (draw-dev self)
-    :user (breaker.draw self.user-layer)))
+  (let [active-states (self.machine:activeStateIds)]
+    (when active-states.mode-display-on
+      (lovr.graphics.print
+       (if (and active-states.dev-visible active-states.user-also-visible) :simultaneous
+           active-states.dev-visible :dev
+           :user)
+       -0.02 1 -2 0.25))
+    (when active-states.dev-visible (draw-dev self))
+    (when (or active-states.user-also-visible active-states.user-only)
+      (breaker.draw self.user-layer))))
 
 development-environment
