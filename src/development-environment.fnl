@@ -55,12 +55,9 @@
   (log.info :config (.. "Save directory: " (lovr.filesystem.getSaveDirectory)))
   (let [machine (lxsc:parse machine-scxml)]
     (machine:start)
-    {:display-mode :simultaneous  ;; Can be one of simultaneous, dev, or user.
-     :display-display-mode-until -1
-     :elapsed (elapsed-time.init)
+    {:elapsed (elapsed-time.init)
      :hands {:left (hand.init :hand/left)
              :right (hand.init :hand/right)}
-     :input-mode :physical
      :text-focus nil
      : machine
      :text-input (binder.init breaker text-input)
