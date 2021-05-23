@@ -238,15 +238,16 @@
         (hand.draw (. self.hands hand-name)))
   (blocks.draw self.user-blocks)
 
-  (when (= self.input-mode :textual)
-    (lovr.graphics.push)
-    (lovr.graphics.translate (self.hands.left.position:unpack))
-    (lovr.graphics.rotate (self.hands.left.rotation:unpack))
-    (lovr.graphics.translate 0 0.1 -0.1)
-    (lovr.graphics.rotate (- (/ math.pi 4)) 1 0 0)
-    (lovr.graphics.scale 0.05)
-    (self.text-input:draw)
-    (lovr.graphics.pop)))
+  (let [{: textual} (self.machine:activeStateIds)]
+    (when textual
+      (lovr.graphics.push)
+      (lovr.graphics.translate (self.hands.left.position:unpack))
+      (lovr.graphics.rotate (self.hands.left.rotation:unpack))
+      (lovr.graphics.translate 0 0.1 -0.1)
+      (lovr.graphics.rotate (- (/ math.pi 4)) 1 0 0)
+      (lovr.graphics.scale 0.05)
+      (self.text-input:draw)
+      (lovr.graphics.pop))))
 
 (fn development-environment.draw [self]
   (elapsed-time.draw self.elapsed)
