@@ -26,4 +26,6 @@
 (set module.on-exit (xml-tag :onexit []))
 (set module.history (xml-tag :history [:id :type]))
 
+(set module.send (xml-tag :send [:event :eventexpr :target :targetexpr :type :typeexpr :id :idlocation :delay :delayexpr :namelist]))
+
 module

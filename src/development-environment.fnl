@@ -20,22 +20,32 @@
 
 (local
  machine-scxml
- (let [{: statechart : state : transition : parallel} scxml]
+ (let [{: statechart : state : transition : parallel : send} scxml]
    (statechart
     {}
-    (parallel {:id :development-controls-active}
-              (state {:id :dev-visible}
-                     (state {:id :user-also-visible}
-                            (transition {:event :change-display-mode :target :dev-only}))
-                     (state {:id :dev-only}
-                            (transition {:event :change-display-mode :target :user-only})))
-              (state {:id :input-mode}
-                     (state {:id :physical}
-                            (transition {:event :change-input-mode :target :textual}))
-                     (state {:id :textual}
-                            (transition {:event :change-input-mode :target :physical}))))
-    (state {:id :user-only}
-           (transition {:event :change-display-mode :target :dev-visible})))))
+    (parallel {}
+              (state {} (parallel {:id :development-controls-active}
+                               (state {:id :dev-visible}
+                                      (state {:id :user-also-visible}
+                                             (transition {:event :change-display-mode :target :dev-only}))
+                                      (state {:id :dev-only}
+                                             (transition {:event :change-display-mode :target :user-only})))
+                               (state {:id :input-mode}
+                                      (state {:id :physical}
+                                             (transition {:event :change-input-mode :target :textual}))
+                                      (state {:id :textual}
+                                             (transition {:event :change-input-mode :target :physical}))))
+                     (state {:id :user-only}
+                            (transition {:event :change-display-mode :target :dev-visible})))
+              (state {}
+                     (state {:id :mode-display-off}
+                            (transition {:event :change-display-mode
+                                         :target :mode-display-on}
+                                        (send {:event :mode-display-timed-out
+                                               :delay :1s})))
+                     (state {:id :mode-display-on}
+                            (transition {:event :mode-display-timed-out
+                                         :target :mode-display-off})))))))
 
 (fn development-environment.init []
   (log.info :config (.. "Save directory: " (lovr.filesystem.getSaveDirectory)))
