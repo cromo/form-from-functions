@@ -189,15 +189,13 @@
     ({:write-text true})
     (do (self.machine:fireEvent :change-input-mode)
         (set self.text-focus self.hands.left.contents)
-        (set self.hands.left.contents nil)))
-  (if self.text-focus :textual :physical))
+        (set self.hands.left.contents nil))))
 
 (fn textual-update [self dt]
   (self.text-input:update dt self.text-focus)
   (match (input-adapter.textual environmental-queries)
     {:stop true} (do (self.machine:fireEvent :change-input-mode)
-                     (set self.text-focus nil)))
-  (if self.text-focus :textual :physical))
+                     (set self.text-focus nil))))
 
 (fn update-dev [self dt]
   (hand.update self.hands.left)
