@@ -253,9 +253,13 @@
 
 (fn development-environment.draw [self]
   (elapsed-time.draw self.elapsed)
-  (when (< self.elapsed.seconds self.display-display-mode-until)
-    (lovr.graphics.print self.display-mode -0.02 1 -2 0.25))
   (let [active-states (self.machine:activeStateIds)]
+    (when active-states.mode-display-on
+      (lovr.graphics.print
+       (if (and active-states.dev-visible active-states.user-also-visible) :simultaneous
+           active-states.dev-visible :dev
+           :user)
+       -0.02 1 -2 0.25))
     (when active-states.dev-visible (draw-dev self))
     (when (or active-states.user-also-visible active-states.user-only)
       (breaker.draw self.user-layer))))
