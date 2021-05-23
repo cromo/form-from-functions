@@ -94,9 +94,9 @@
                {:evaluate (was-pressed :right :a)
                 :save (was-pressed :right :b)
                 :create-block (and (was-pressed :left :x)
-                                   (query.hand-contains-block? :left))
+                                   (not (query.hand-contains-block? :left)))
                 :destroy-block (and (was-pressed :left :x)
-                                    (not (query.hand-contains-block? :left)))
+                                    (query.hand-contains-block? :left))
                 :link (and (or (was-pressed :left :trigger)
                                (was-pressed :right :trigger))
                            (query.hand-contains-block? :left)
@@ -153,13 +153,12 @@
          (log.error :codegen error))))
     (when input.save
       (persistence.save-blocks-file self.user-blocks))
-    ;; TODO: these are backwards! I should fix this as part of this issue
     (when input.create-block
+      (blocks.add self.user-blocks (block.init (self.hands.left.position:unpack))))
+    (when input.destroy-block
       (let [block-to-remove self.hands.left.contents]
         (set self.hands.left.contents nil)
         (blocks.remove self.user-blocks block-to-remove)))
-    (when input.destroy-block
-      (blocks.add self.user-blocks (block.init (self.hands.left.position:unpack))))
     (when input.link
       (block.link self.hands.left.contents self.hands.right.contents))
     (if input.clone-grab.left
