@@ -186,23 +186,24 @@
     (set self.hands.right.contents nil)
 
     ({:write-text true})
-    (do (set self.text-focus self.hands.left.contents)
+    (do (self.machine:fireEvent :change-input-mode)
+        (set self.text-focus self.hands.left.contents)
         (set self.hands.left.contents nil)))
   (if self.text-focus :textual :physical))
 
 (fn textual-update [self dt]
   (self.text-input:update dt self.text-focus)
   (match (input-adapter.textual environmental-queries)
-    {:stop true} (set self.text-focus nil))
+    {:stop true} (do (self.machine:fireEvent :change-input-mode)
+                     (set self.text-focus nil)))
   (if self.text-focus :textual :physical))
 
 (fn update-dev [self dt]
   (hand.update self.hands.left)
   (hand.update self.hands.right)
-  (set self.input-mode
-       (match self.input-mode
-         :physical (physical-update self dt)
-         :textual (textual-update self dt))))
+  (let [{: physical : textual} (self.machine:activeStateIds)]
+    (when physical (physical-update self dt))
+    (when textual (textual-update self dt))))
 
 (fn development-environment.update [self dt]
   (elapsed-time.update self.elapsed dt)
