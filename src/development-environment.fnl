@@ -144,52 +144,46 @@
          "HTC" available-input-adapters.vive-wands))
 
 (fn physical-update [self dt]
-  (match (input-adapter.physical
-          {:hand-contains-block? #(not (not (. self.hands $1 :contents)))})
-    {:evaluate true}
-    (xpcall
-     (fn [] (set self.user-layer (breaker.init (fennel.eval (generate-code self.user-blocks)))))
-     (fn [error]
-       (log.error :codegen error)))
-    {:save true}
-    (persistence.save-blocks-file self.user-blocks)
-
-    ({:create-block true})
-    (let [block-to-remove self.hands.left.contents]
-      (set self.hands.left.contents nil)
-      (blocks.remove self.user-blocks block-to-remove))
-    {:destroy-block true}
-    (blocks.add self.user-blocks (block.init (self.hands.left.position:unpack)))
-    ({:link true})
-    (block.link self.hands.left.contents self.hands.right.contents)
-
-    {:clone-grab {:left true}}
-    (let [nearest-block (nearest-block-in-grab-distance self.hands.left.position self.user-blocks)]
-      (when nearest-block
-        (let [new-block (block.init (self.hands.left.position:unpack))]
-          (set new-block.text nearest-block.text)
-          (blocks.add self.user-blocks new-block)
-          (set self.hands.left.contents new-block))))
-    {:clone-grab {:right true}}
-    (let [nearest-block (nearest-block-in-grab-distance self.hands.right.position self.user-blocks)]
-      (when nearest-block
-        (let [new-block (block.init (self.hands.right.position:unpack))]
-          (set new-block.text nearest-block.text)
-          (blocks.add self.user-blocks new-block)
-          (set self.hands.right.contents new-block))))
-    {:grab {:left true}}
-    (grab-nearby-block-if-able self.hands.left self.user-blocks)
-    {:grab {:right true}}
-    (grab-nearby-block-if-able self.hands.right self.user-blocks)
-    {:drop {:left true}}
-    (set self.hands.left.contents nil)
-    {:drop {:right true}}
-    (set self.hands.right.contents nil)
-
-    ({:write-text true})
-    (do (self.machine:fireEvent :change-input-mode)
-        (set self.text-focus self.hands.left.contents)
-        (set self.hands.left.contents nil))))
+  (let [input (input-adapter.physical
+               {:hand-contains-block? #(not (not (. self.hands $1 :contents)))})]
+    (when input.evaluate
+      (xpcall
+       (fn [] (set self.user-layer (breaker.init (fennel.eval (generate-code self.user-blocks)))))
+       (fn [error]
+         (log.error :codegen error))))
+    (when input.save
+      (persistence.save-blocks-file self.user-blocks))
+    ;; TODO: these are backwards! I should fix this as part of this issue
+    (when input.create-block
+      (let [block-to-remove self.hands.left.contents]
+        (set self.hands.left.contents nil)
+        (blocks.remove self.user-blocks block-to-remove)))
+    (when input.destroy-block
+      (blocks.add self.user-blocks (block.init (self.hands.left.position:unpack))))
+    (when input.link
+      (block.link self.hands.left.contents self.hands.right.contents))
+    (if input.clone-grab.left
+      (let [nearest-block (nearest-block-in-grab-distance self.hands.left.position self.user-blocks)]
+        (when nearest-block
+          (let [new-block (block.init (self.hands.left.position:unpack))]
+            (set new-block.text nearest-block.text)
+            (blocks.add self.user-blocks new-block)
+            (set self.hands.left.contents new-block))))
+      input.grab.left (grab-nearby-block-if-able self.hands.left self.user-blocks)
+      input.drop.left (set self.hands.left.contents nil))
+    (if input.clone-grab.right
+      (let [nearest-block (nearest-block-in-grab-distance self.hands.right.position self.user-blocks)]
+        (when nearest-block
+          (let [new-block (block.init (self.hands.right.position:unpack))]
+            (set new-block.text nearest-block.text)
+            (blocks.add self.user-blocks new-block)
+            (set self.hands.right.contents new-block))))
+      input.grab.right (grab-nearby-block-if-able self.hands.right self.user-blocks)
+      input.drop.right (set self.hands.right.contents nil))
+    (when input.write-text
+      (self.machine:fireEvent :change-input-mode)
+      (set self.text-focus self.hands.left.contents)
+      (set self.hands.left.contents nil))))
 
 (fn textual-update [self dt]
   (self.text-input:update dt self.text-focus)
