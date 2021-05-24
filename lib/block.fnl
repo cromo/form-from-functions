@@ -6,7 +6,8 @@
 (lambda block.init [x y z]
         {:position (lovr.math.newVec3 x y z)
          :rotation (lovr.math.newQuat)
-         :text ""})
+         :text ""
+         :type :plain-text})
 
 (fn block.link [from to]
   (set from.next (if (= from to) nil to)))

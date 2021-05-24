@@ -48,6 +48,7 @@
     (each [_ block (ipairs blocks)]
           (set block.position (lovr.math.newVec3 (unpack block.position)))
           (set block.rotation (lovr.math.newQuat (unpack block.rotation)))
+          (when (not block.type) (set block.type :plain-text))
           (when block.next
             (set block.next (. blocks block.next))))
     blocks))
