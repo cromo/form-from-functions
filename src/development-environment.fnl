@@ -95,7 +95,8 @@
   {:physical (fn [query]
                {:evaluate (was-pressed :right :a)
                 :save (was-pressed :right :b)
-                :create-block (and (was-pressed :left :x)
+                :create-block (and (is-down :left :grip)
+                                   (was-pressed :left :x)
                                    (not (query.hand-contains-block? :left)))
                 :destroy-block (and (was-pressed :left :x)
                                     (query.hand-contains-block? :left))
@@ -139,7 +140,9 @@
     (when input.save
       (persistence.save-blocks-file self.user-blocks))
     (when input.create-block
-      (blocks.add self.user-blocks (block.init (self.hands.left.position:unpack))))
+      (let [new-block (block.init (self.hands.left.position:unpack))]
+        (set self.hands.left.contents new-block)
+        (blocks.add self.user-blocks new-block)))
     (when input.destroy-block
       (let [block-to-remove self.hands.left.contents]
         (set self.hands.left.contents nil)
