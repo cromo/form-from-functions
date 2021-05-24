@@ -106,10 +106,6 @@
                                       (query.drawing-link? :left))
                            :right (and (was-released :right :trigger)
                                        (query.drawing-link? :right))}
-                :link (and (or (was-pressed :left :trigger)
-                               (was-pressed :right :trigger))
-                           (query.hand-contains-block? :left)
-                           (query.hand-contains-block? :right))
                 :grab {:left (was-pressed :left :grip)
                        :right (was-pressed :right :grip)}
                 :clone-grab {:left (and (is-down :left :trigger)
