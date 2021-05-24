@@ -100,6 +100,8 @@
                                    (not (query.hand-contains-block? :left)))
                 :destroy-block (and (was-pressed :left :trigger)
                                     (query.hand-contains-block? :left))
+                :change-block-type (and (was-pressed :left :x)
+                                        (query.hand-contains-block? :left))
                 :start-link {:left (was-pressed :left :trigger)
                              :right (was-pressed :right :trigger)}
                 :end-link {:left (and (was-released :left :trigger)
@@ -145,6 +147,8 @@
       (let [block-to-remove self.hands.left.contents]
         (set self.hands.left.contents nil)
         (blocks.remove self.user-blocks block-to-remove)))
+    (when input.change-block-type
+      (block.become-next-type self.hands.left.contents))
     (fn update-symmetric-hand-input [hand-name]
       (let [hand (. self.hands hand-name)
             start-link (. input.start-link hand-name)

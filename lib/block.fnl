@@ -12,6 +12,25 @@
 (fn block.link [from to]
   (set from.next (if (= from to) nil to)))
 
+(fn block.become-next-type [block]
+  (match [block.type block.prefix]
+    [:plain-text _] (do (set block.type :container)
+                        (set block.prefix "(")
+                        (set block.suffix ")")
+                        (set block.text "(...)"))
+    [:container "("] (do (set block.type :container)
+                         (set block.prefix "[")
+                         (set block.suffix "]")
+                         (set block.text "[...]"))
+    [:container "["] (do (set block.type :container)
+                         (set block.prefix "{")
+                         (set block.suffix "}")
+                         (set block.text "{...}"))
+    [:container "{"] (do (set block.type :plain-text)
+                         (set block.prefix nil)
+                         (set block.suffix nil)
+                         (set block.text ""))))
+
 (fn draw-link [block]
   (let [font (lovr.graphics.getFont)
         (unscaled-width) (font:getWidth block.text)
