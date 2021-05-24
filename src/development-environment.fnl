@@ -173,6 +173,15 @@
         (when nearest-block
           (block.link self.link-from.left nearest-block))
         (set self.link-from.left nil)))
+    (when input.start-link.right
+      (let [nearest-block (nearest-block-in-grab-distance self.hands.right.position self.user-blocks)]
+        (when nearest-block
+          (set self.link-from.right nearest-block))))
+    (when input.end-link.right
+      (let [nearest-block (nearest-block-in-grab-distance self.hands.right.position self.user-blocks)]
+        (when nearest-block
+          (block.link self.link-from.right nearest-block))
+        (set self.link-from.right nil)))
     (if input.clone-grab.left
       (let [nearest-block (nearest-block-in-grab-distance self.hands.left.position self.user-blocks)]
         (when nearest-block
