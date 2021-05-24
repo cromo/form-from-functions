@@ -120,27 +120,7 @@
                 :write-text (and (was-pressed :left :y)
                                  (query.hand-contains-block? :left))})
    :textual (fn [query]
-              {:stop (was-pressed :left :y)})}
-  :vive-wands
-  {:physical (fn [query]
-               {:evaluate (was-pressed :right :touchpad)
-                :save (was-pressed :right :menu)
-                :create-block (and (was-pressed :left :touchpad)
-                                   (query.hand-contains-block? :left))
-                :destroy-block (and (was-pressed :left :touchpad)
-                                    (not (query.hand-contains-block? :left)))
-                :grab {:left (was-pressed :left :grip)
-                       :right (was-pressed :right :grip)}
-                :clone-grab {:left (and (is-down :left :trigger)
-                                        (was-pressed :left :grip))
-                             :right (and (is-down :right :trigger)
-                                         (was-pressed :right :grip))}
-                :drop {:left (was-released :left :grip)
-                       :right (was-released :right :grip)}
-                :write-text (and (was-pressed :left :menu)
-                                 (query.hand-contains-block? :left))})
-   :textual (fn [query]
-              {:stop (was-pressed :left :menu)})}})
+              {:stop (was-pressed :left :y)})}})
 
 (local input-adapter
        (match (lovr.headset.getName)
