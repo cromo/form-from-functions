@@ -164,44 +164,37 @@
       (let [block-to-remove self.hands.left.contents]
         (set self.hands.left.contents nil)
         (blocks.remove self.user-blocks block-to-remove)))
-    (when input.start-link.left
-      (let [nearest-block (nearest-block-in-grab-distance self.hands.left.position self.user-blocks)]
-        (when nearest-block
-          (set self.link-from.left nearest-block))))
-    (when input.end-link.left
-      (let [nearest-block (nearest-block-in-grab-distance self.hands.left.position self.user-blocks)]
-        (when nearest-block
-          (block.link self.link-from.left nearest-block))
-        (set self.link-from.left nil)))
-    (when input.start-link.right
-      (let [nearest-block (nearest-block-in-grab-distance self.hands.right.position self.user-blocks)]
-        (when nearest-block
-          (set self.link-from.right nearest-block))))
-    (when input.end-link.right
-      (let [nearest-block (nearest-block-in-grab-distance self.hands.right.position self.user-blocks)]
-        (when nearest-block
-          (block.link self.link-from.right nearest-block))
-        (set self.link-from.right nil)))
-    (if input.clone-grab.left
-      (let [nearest-block (nearest-block-in-grab-distance self.hands.left.position self.user-blocks)]
-        (when nearest-block
-          ;; A clone grab overrides a link draw, so cancel the link.
-          (set self.link-from.left nil)
-          (let [new-block (block.init (self.hands.left.position:unpack))]
-            (set new-block.text nearest-block.text)
-            (blocks.add self.user-blocks new-block)
-            (set self.hands.left.contents new-block))))
-      input.grab.left (grab-nearby-block-if-able self.hands.left self.user-blocks)
-      input.drop.left (set self.hands.left.contents nil))
-    (if input.clone-grab.right
-      (let [nearest-block (nearest-block-in-grab-distance self.hands.right.position self.user-blocks)]
-        (when nearest-block
-          (let [new-block (block.init (self.hands.right.position:unpack))]
-            (set new-block.text nearest-block.text)
-            (blocks.add self.user-blocks new-block)
-            (set self.hands.right.contents new-block))))
-      input.grab.right (grab-nearby-block-if-able self.hands.right self.user-blocks)
-      input.drop.right (set self.hands.right.contents nil))
+    (fn update-symmetric-hand-input [hand-name]
+      (let [hand (. self.hands hand-name)
+            start-link (. input.start-link hand-name)
+            end-link (. input.end-link hand-name)
+            link-from (. self.link-from hand-name)
+            clone-grab (. input.clone-grab hand-name)
+            grab (. input.grab hand-name)
+            drop (. input.drop hand-name)]
+        (when start-link
+          (let [nearest-block (nearest-block-in-grab-distance hand.position self.user-blocks)]
+            (when nearest-block
+              (tset self.link-from hand-name nearest-block))))
+        (when end-link
+          (let [nearest-block (nearest-block-in-grab-distance hand.position self.user-blocks)]
+            (when nearest-block
+              (block.link link-from nearest-block))
+            (tset self.link-from hand-name nil)))
+        (if clone-grab
+          (let [nearest-block (nearest-block-in-grab-distance hand.position self.user-blocks)]
+            (when nearest-block
+              ;; A clone grab overrides a link draw, so cancel the link.
+              (tset self.link-from hand-name nil)
+              (let [new-block (block.init (hand.position:unpack))]
+                (set new-block.text nearest-block.text)
+                (blocks.add self.user-blocks new-block)
+                (set hand.contents new-block))))
+          grab (grab-nearby-block-if-able hand self.user-blocks)
+          drop (set hand.contents nil))))
+    (update-symmetric-hand-input :left)
+    (update-symmetric-hand-input :right)
+    
     (when input.write-text
       (self.machine:fireEvent :change-input-mode)
       (set self.text-focus self.hands.left.contents)
