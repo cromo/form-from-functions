@@ -59,6 +59,8 @@
      :hands {:left (hand.init :hand/left)
              :right (hand.init :hand/right)}
      :text-focus nil
+     :link-from {:left nil
+                 :right nil}
      : machine
      :text-input (binder.init breaker text-input)
      :user-blocks (if (persistence.blocks-file-exists?)
@@ -97,6 +99,12 @@
                                    (not (query.hand-contains-block? :left)))
                 :destroy-block (and (was-pressed :left :x)
                                     (query.hand-contains-block? :left))
+                :start-link {:left (was-pressed :left :trigger)
+                             :right (was-pressed :right :trigger)}
+                :end-link {:left (and (was-released :left :trigger)
+                                      (query.drawing-link? :left))
+                           :right (and (was-released :right :trigger)
+                                       (query.drawing-link? :right))}
                 :link (and (or (was-pressed :left :trigger)
                                (was-pressed :right :trigger))
                            (query.hand-contains-block? :left)
@@ -121,10 +129,6 @@
                                    (query.hand-contains-block? :left))
                 :destroy-block (and (was-pressed :left :touchpad)
                                     (not (query.hand-contains-block? :left)))
-                :link (and (or (was-pressed :left :trigger)
-                               (was-pressed :right :trigger))
-                           (query.hand-contains-block? :left)
-                           (query.hand-contains-block? :right))
                 :grab {:left (was-pressed :left :grip)
                        :right (was-pressed :right :grip)}
                 :clone-grab {:left (and (is-down :left :trigger)
@@ -145,7 +149,8 @@
 
 (fn physical-update [self dt]
   (let [input (input-adapter.physical
-               {:hand-contains-block? #(not (not (. self.hands $1 :contents)))})]
+               {:hand-contains-block? #(not (not (. self.hands $1 :contents)))
+                :drawing-link? #(. self.link-from $1)})]
     (when input.evaluate
       (xpcall
        (fn [] (set self.user-layer (breaker.init (fennel.eval (generate-code self.user-blocks)))))
@@ -159,26 +164,37 @@
       (let [block-to-remove self.hands.left.contents]
         (set self.hands.left.contents nil)
         (blocks.remove self.user-blocks block-to-remove)))
-    (when input.link
-      (block.link self.hands.left.contents self.hands.right.contents))
-    (if input.clone-grab.left
-      (let [nearest-block (nearest-block-in-grab-distance self.hands.left.position self.user-blocks)]
-        (when nearest-block
-          (let [new-block (block.init (self.hands.left.position:unpack))]
-            (set new-block.text nearest-block.text)
-            (blocks.add self.user-blocks new-block)
-            (set self.hands.left.contents new-block))))
-      input.grab.left (grab-nearby-block-if-able self.hands.left self.user-blocks)
-      input.drop.left (set self.hands.left.contents nil))
-    (if input.clone-grab.right
-      (let [nearest-block (nearest-block-in-grab-distance self.hands.right.position self.user-blocks)]
-        (when nearest-block
-          (let [new-block (block.init (self.hands.right.position:unpack))]
-            (set new-block.text nearest-block.text)
-            (blocks.add self.user-blocks new-block)
-            (set self.hands.right.contents new-block))))
-      input.grab.right (grab-nearby-block-if-able self.hands.right self.user-blocks)
-      input.drop.right (set self.hands.right.contents nil))
+    (fn update-symmetric-hand-input [hand-name]
+      (let [hand (. self.hands hand-name)
+            start-link (. input.start-link hand-name)
+            end-link (. input.end-link hand-name)
+            link-from (. self.link-from hand-name)
+            clone-grab (. input.clone-grab hand-name)
+            grab (. input.grab hand-name)
+            drop (. input.drop hand-name)]
+        (when start-link
+          (let [nearest-block (nearest-block-in-grab-distance hand.position self.user-blocks)]
+            (when nearest-block
+              (tset self.link-from hand-name nearest-block))))
+        (when end-link
+          (let [nearest-block (nearest-block-in-grab-distance hand.position self.user-blocks)]
+            (when nearest-block
+              (block.link link-from nearest-block))
+            (tset self.link-from hand-name nil)))
+        (if clone-grab
+          (let [nearest-block (nearest-block-in-grab-distance hand.position self.user-blocks)]
+            (when nearest-block
+              ;; A clone grab overrides a link draw, so cancel the link.
+              (tset self.link-from hand-name nil)
+              (let [new-block (block.init (hand.position:unpack))]
+                (set new-block.text nearest-block.text)
+                (blocks.add self.user-blocks new-block)
+                (set hand.contents new-block))))
+          grab (grab-nearby-block-if-able hand self.user-blocks)
+          drop (set hand.contents nil))))
+    (update-symmetric-hand-input :left)
+    (update-symmetric-hand-input :right)
+    
     (when input.write-text
       (self.machine:fireEvent :change-input-mode)
       (set self.text-focus self.hands.left.contents)
@@ -222,7 +238,11 @@
        (hand.format self.hands.right))
    -0.03 1.3 -2 0.1)
   (each [_ hand-name (pairs [:left :right])]
-        (hand.draw (. self.hands hand-name)))
+        (hand.draw (. self.hands hand-name))
+        (when (. self.link-from hand-name)
+          (let [(x1 y1 z1) (: (. self.link-from hand-name :position) :unpack)
+                (x2 y2 z2) (: (. self.hands hand-name :position) :unpack)]
+            (lovr.graphics.line x1 y1 z1 x2 y2 z2))))
   (blocks.draw self.user-blocks)
 
   (let [{: textual} (self.machine:activeStateIds)]

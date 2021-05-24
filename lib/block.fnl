@@ -9,7 +9,7 @@
          :text ""})
 
 (fn block.link [from to]
-  (set from.next (if from.next nil to)))
+  (set from.next (if (= from to) nil to)))
 
 (fn draw-link [block]
   (let [font (lovr.graphics.getFont)
