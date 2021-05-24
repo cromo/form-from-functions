@@ -96,9 +96,9 @@
                {:evaluate (was-pressed :right :a)
                 :save (was-pressed :right :b)
                 :create-block (and (is-down :left :grip)
-                                   (was-pressed :left :x)
+                                   (was-pressed :left :trigger)
                                    (not (query.hand-contains-block? :left)))
-                :destroy-block (and (was-pressed :left :x)
+                :destroy-block (and (was-pressed :left :trigger)
                                     (query.hand-contains-block? :left))
                 :start-link {:left (was-pressed :left :trigger)
                              :right (was-pressed :right :trigger)}
