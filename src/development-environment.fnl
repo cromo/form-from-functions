@@ -61,6 +61,8 @@
      :text-focus nil
      :link-from {:left nil
                  :right nil}
+     :link-type {:left nil
+                 :right nil}
      : machine
      :text-input (binder.init breaker text-input)
      :user-blocks (if (persistence.blocks-file-exists?)
@@ -108,6 +110,9 @@
                                       (query.drawing-link? :left))
                            :right (and (was-released :right :trigger)
                                        (query.drawing-link? :right))}
+                :change-link-type {:left (and (was-pressed :left :x)
+                                              (query.drawing-link? :left))
+                                   :right false}
                 :grab {:left (was-pressed :left :grip)
                        :right (was-pressed :right :grip)}
                 :clone-grab {:left (and (is-down :left :trigger)
@@ -156,16 +161,23 @@
             link-from (. self.link-from hand-name)
             clone-grab (. input.clone-grab hand-name)
             grab (. input.grab hand-name)
-            drop (. input.drop hand-name)]
+            drop (. input.drop hand-name)
+            change-link-type (. input.change-link-type hand-name)]
         (when start-link
           (let [nearest-block (nearest-block-in-grab-distance hand.position self.user-blocks)]
             (when nearest-block
+              (tset self.link-type hand-name :next)
               (tset self.link-from hand-name nearest-block))))
         (when end-link
           (let [nearest-block (nearest-block-in-grab-distance hand.position self.user-blocks)]
             (when nearest-block
               (block.link link-from nearest-block))
             (tset self.link-from hand-name nil)))
+        (when (and change-link-type (= link-from.type :container))
+          (let [link-type (. self.link-type hand-name)]
+            (tset self.link-type hand-name (match link-type
+                                             :next :contents
+                                             :contents :next))))
         (if clone-grab
           (let [nearest-block (nearest-block-in-grab-distance hand.position self.user-blocks)]
             (when nearest-block
@@ -226,7 +238,12 @@
         (hand.draw (. self.hands hand-name))
         (when (. self.link-from hand-name)
           (let [(x1 y1 z1) (: (. self.link-from hand-name :position) :unpack)
-                (x2 y2 z2) (: (. self.hands hand-name :position) :unpack)]
+                (x2 y2 z2) (: (. self.hands hand-name :position) :unpack)
+                link-type (. self.link-type hand-name)
+                color (match link-type
+                        :next :0xffffff
+                        :contents :0x00ffff)]
+            (lovr.graphics.setColor color)
             (lovr.graphics.line x1 y1 z1 x2 y2 z2))))
   (blocks.draw self.user-blocks)
 
