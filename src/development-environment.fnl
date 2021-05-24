@@ -129,10 +129,12 @@
                {:hand-contains-block? #(not (not (. self.hands $1 :contents)))
                 :drawing-link? #(. self.link-from $1)})]
     (when input.evaluate
-      (xpcall
-       (fn [] (set self.user-layer (breaker.init (fennel.eval (generate-code self.user-blocks)))))
-       (fn [error]
-         (log.error :codegen error))))
+      (match self.user-blocks
+        [first-block & _]
+        (xpcall
+         (fn [] (set self.user-layer (breaker.init (fennel.eval (generate-code first-block)))))
+         (fn [error]
+           (log.error :codegen error)))))
     (when input.save
       (persistence.save-blocks-file self.user-blocks))
     (when input.create-block
