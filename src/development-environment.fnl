@@ -129,10 +129,6 @@
                                    (query.hand-contains-block? :left))
                 :destroy-block (and (was-pressed :left :touchpad)
                                     (not (query.hand-contains-block? :left)))
-                :link (and (or (was-pressed :left :trigger)
-                               (was-pressed :right :trigger))
-                           (query.hand-contains-block? :left)
-                           (query.hand-contains-block? :right))
                 :grab {:left (was-pressed :left :grip)
                        :right (was-pressed :right :grip)}
                 :clone-grab {:left (and (is-down :left :trigger)
@@ -177,8 +173,6 @@
         (when nearest-block
           (block.link self.link-from.left nearest-block))
         (set self.link-from.left nil)))
-    (when input.link
-      (block.link self.hands.left.contents self.hands.right.contents))
     (if input.clone-grab.left
       (let [nearest-block (nearest-block-in-grab-distance self.hands.left.position self.user-blocks)]
         (when nearest-block
