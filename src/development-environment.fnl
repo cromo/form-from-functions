@@ -101,8 +101,10 @@
                                     (query.hand-contains-block? :left))
                 :start-link {:left (was-pressed :left :trigger)
                              :right (was-pressed :right :trigger)}
-                :end-link {:left (was-released :left :trigger)
-                           :right (was-released :right :trigger)}
+                :end-link {:left (and (was-released :left :trigger)
+                                      (query.drawing-link? :left))
+                           :right (and (was-released :right :trigger)
+                                       (query.drawing-link? :right))}
                 :link (and (or (was-pressed :left :trigger)
                                (was-pressed :right :trigger))
                            (query.hand-contains-block? :left)
@@ -151,7 +153,8 @@
 
 (fn physical-update [self dt]
   (let [input (input-adapter.physical
-               {:hand-contains-block? #(not (not (. self.hands $1 :contents)))})]
+               {:hand-contains-block? #(not (not (. self.hands $1 :contents)))
+                :drawing-link? #(. self.link-from $1)})]
     (when input.evaluate
       (xpcall
        (fn [] (set self.user-layer (breaker.init (fennel.eval (generate-code self.user-blocks)))))
