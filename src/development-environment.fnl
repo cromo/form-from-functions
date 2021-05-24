@@ -171,7 +171,9 @@
         (when end-link
           (let [nearest-block (nearest-block-in-grab-distance hand.position self.user-blocks)]
             (when nearest-block
-              (block.link link-from nearest-block))
+              (if (= (. self.link-type hand-name) :next)
+                (block.link link-from nearest-block)
+                (block.link-contents link-from nearest-block)))
             (tset self.link-from hand-name nil)))
         (when (and change-link-type (= link-from.type :container))
           (let [link-type (. self.link-type hand-name)]
