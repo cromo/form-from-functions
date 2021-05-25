@@ -8,8 +8,8 @@ TEST = $(wildcard test/*.fnl)
 
 all: $(LUA_OUT)
 
-%.lua: %.fnl fennel.exe
-	./fennel.exe --compile $< > $@
+%.lua: %.fnl lua.com fennel
+	$(FENNEL) --compile $< > $@
 
 clean:
 	rm -f $(LUA_OUT)
@@ -17,4 +17,4 @@ clean:
 # Mark unpack as global because it's global in LuaJIT (which is what LOVR uses)
 # but not in Lua 5.4 (which is what the tests use).
 test:
-	#(FENNEL) --globals unpack third-party/knife-test.fnl $(TEST)
+	$(FENNEL) --globals unpack third-party/knife-test.fnl $(TEST)
