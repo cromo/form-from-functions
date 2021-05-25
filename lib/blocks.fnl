@@ -41,15 +41,22 @@
                          {:position [(block.position:unpack)]
                           :rotation [(block.rotation:unpack)]
                           :text block.text
-                          :next (find-first block.next blocks)})))
+                          :next (find-first block.next blocks)
+                          :prefix block.prefix
+                          :suffix block.suffix
+                          :type block.type
+                          :contents (if block.contents (find-first block.contents blocks))})))
 
 (fn blocks.deserialize [encoded-blocks]
   (let [blocks (json.decode encoded-blocks)]
     (each [_ block (ipairs blocks)]
           (set block.position (lovr.math.newVec3 (unpack block.position)))
           (set block.rotation (lovr.math.newQuat (unpack block.rotation)))
+          (when (not block.type) (set block.type :plain-text))
           (when block.next
-            (set block.next (. blocks block.next))))
+            (set block.next (. blocks block.next)))
+          (when block.contents
+            (set block.contents (. blocks block.contents))))
     blocks))
 
 blocks
