@@ -187,6 +187,9 @@
               (tset self.link-from hand-name nil)
               (let [new-block (block.init (hand.position:unpack))]
                 (set new-block.text nearest-block.text)
+                (set new-block.prefix nearest-block.prefix)
+                (set new-block.suffix nearest-block.suffix)
+                (set new-block.type nearest-block.type)
                 (blocks.add self.user-blocks new-block)
                 (set hand.contents new-block))))
           grab (grab-nearby-block-if-able hand self.user-blocks)
