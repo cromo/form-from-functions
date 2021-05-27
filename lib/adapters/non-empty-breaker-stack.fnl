@@ -18,7 +18,7 @@
   (if (< 0 (length self.stack))
     ((. breaker :callback-name) (sm.top self.stack) ...)
     (match self.default-callbacks
-      {callback-name callback} (callback self.default-state))))
+      {callback-name callback} (callback self.default-state ...))))
 
 (fn module.update [self ...]
   (call-through self :update ...))
