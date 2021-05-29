@@ -140,7 +140,9 @@
       (match self.user-blocks
         [first-block & _]
         (xpcall
-         (fn [] (set self.user-layer (breaker.init (fennel.eval (generate-code first-block)))))
+         (fn [] (set self.user-layer
+                     (breaker.init (fennel.eval (generate-code first-block))
+                                   {:add-text-input #(non-empty-breaker-stack.push self.text-input $1 $2)})))
          (fn [error]
            (log.error :codegen error)))))
     (when input.save
