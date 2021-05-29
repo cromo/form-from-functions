@@ -65,7 +65,8 @@
      :link-type {:left nil
                  :right nil}
      : machine
-     :text-input (non-empty-breaker-stack.init text-input)
+     :text-input (non-empty-breaker-stack.init text-input
+                                               #(log.error :input (debug.traceback (.. "In " $1 " layer: " (tostring $2)))))
      :user-blocks (if (persistence.blocks-file-exists?)
                     (persistence.load-blocks-file)
                     (blocks.init))
