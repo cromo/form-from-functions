@@ -5,6 +5,7 @@
 (local lxsc (require :third-party/lxsc))
 
 (local binder (require :lib/adapters/binder))
+(local non-empty-breaker-stack (require :lib/adapters/non-empty-breaker-stack))
 (local breaker (require :lib/logging-breaker))
 (local text-input (require :lib/input/layered-radial-text-input))
 (local block (require :lib/block))
@@ -64,7 +65,8 @@
      :link-type {:left nil
                  :right nil}
      : machine
-     :text-input (binder.init breaker text-input)
+     :text-input (non-empty-breaker-stack.init text-input
+                                               #(log.error :input (debug.traceback (.. "In " $1 " layer: " (tostring $2)))))
      :user-blocks (if (persistence.blocks-file-exists?)
                     (persistence.load-blocks-file)
                     (blocks.init))
@@ -139,7 +141,9 @@
       (match self.user-blocks
         [first-block & _]
         (xpcall
-         (fn [] (set self.user-layer (breaker.init (fennel.eval (generate-code first-block)))))
+         (fn [] (set self.user-layer
+                     (breaker.init (fennel.eval (generate-code first-block))
+                                   {:add-text-input #(non-empty-breaker-stack.push self.text-input $1 $2)})))
          (fn [error]
            (log.error :codegen error)))))
     (when input.save
@@ -203,7 +207,7 @@
       (set self.hands.left.contents nil))))
 
 (fn textual-update [self dt]
-  (self.text-input:update dt self.text-focus)
+  (non-empty-breaker-stack.update self.text-input dt self.text-focus)
   (match (input-adapter.textual environmental-queries)
     {:stop true} (do (self.machine:fireEvent :change-input-mode)
                      (set self.text-focus nil))))
@@ -260,7 +264,7 @@
       (lovr.graphics.translate 0 0.1 -0.1)
       (lovr.graphics.rotate (- (/ math.pi 4)) 1 0 0)
       (lovr.graphics.scale 0.05)
-      (self.text-input:draw)
+      (non-empty-breaker-stack.draw self.text-input)
       (lovr.graphics.pop))))
 
 (fn development-environment.draw [self]
