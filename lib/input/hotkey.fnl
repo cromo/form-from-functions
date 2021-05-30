@@ -3,7 +3,7 @@
 (local module {})
 
 (fn module.init [detector callback]
-  #(when (detector $...) (callback)))
+  #(when (detector $...) (callback $...)))
 
 (fn module.update [self ...]
   (self ...))

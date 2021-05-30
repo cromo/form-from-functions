@@ -1,6 +1,7 @@
 (local {:headset {:isDown is-down
                   :wasPressed was-pressed
-                  :wasReleased was-released}} lovr)
+                  :wasReleased was-released
+                  :isTouched is-touched}} lovr)
 (local fennel (require :third-party/fennel))
 (local lxsc (require :third-party/lxsc))
 
@@ -16,6 +17,7 @@
 (local log (require :lib/logging))
 (local persistence (require :src/persistence))
 (local scxml (require :lib/scxml))
+(local hotkey (require :lib/input/hotkey))
 
 (local development-environment {})
 
@@ -54,6 +56,7 @@
 
 (fn development-environment.init []
   (log.info :config (.. "Save directory: " (lovr.filesystem.getSaveDirectory)))
+  (var escape-start nil)
   (let [machine (lxsc:parse machine-scxml)]
     (machine:start)
     {:elapsed (elapsed-time.init)
@@ -65,6 +68,31 @@
      :link-type {:left nil
                  :right nil}
      : machine
+     :hotkeys [(hotkey.init #(let [down (vec3 0 -1 0)
+                                   left-hand-orientation (quat (lovr.headset.getOrientation :left))
+                                   left-hand-relative-down (: (left-hand-orientation:direction) :dot down)
+                                   right-hand-orientation (quat (lovr.headset.getOrientation :right))
+                                   right-hand-relative-down (: (right-hand-orientation:direction) :dot down)
+                                   gesture-recognized
+                                   (and (is-touched :left :trigger)
+                                       (is-touched :right :trigger)
+                                       (not (is-touched :left :x))
+                                       (not (is-touched :left :y))
+                                       (not (is-touched :right :a))
+                                       (not (is-touched :right :b))
+                                       (not (is-touched :left :thumbstick))
+                                       (not (is-touched :right :thumbstick))
+                                       (< 0.6 left-hand-relative-down)
+                                       (< 0.6 right-hand-relative-down))]
+                               (match [gesture-recognized escape-start]
+                                 (where [false t] (not= t nil)) (do (set escape-start nil)
+                                                                    (log.info :escape "escape gesture stopped"))
+                                 [true nil] (do (set escape-start (os.clock))
+                                                (log.info :escape "escape gesture recognized")))
+                               (when escape-start
+                                 (< 1 (- (os.clock) escape-start))))
+                            #(do (log.info :escape "Escape triggered")
+                                 (non-empty-breaker-stack.clear $1.text-input)))]
      :text-input (non-empty-breaker-stack.init text-input
                                                #(log.error :input (debug.traceback (.. "In " $1 " layer: " (tostring $2)))))
      :user-blocks (if (persistence.blocks-file-exists?)
@@ -215,6 +243,9 @@
 (fn update-dev [self dt]
   (hand.update self.hands.left)
   (hand.update self.hands.right)
+  (each [_ hk (ipairs self.hotkeys)]
+        ;; (log.verbose :hotkey "Calling hotkey.update")
+        (hotkey.update hk self))
   (let [{: physical : textual} (self.machine:activeStateIds)]
     (when physical (physical-update self dt))
     (when textual (textual-update self dt))))
