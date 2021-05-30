@@ -20,6 +20,9 @@
 (fn module.pop [{: stack} name]
   (sm.pop stack name))
 
+(fn module.clear [{: stack}]
+  (sm.clear stack))
+
 (fn call-through [self callback-name ...]
   (if (< 0 (length self.stack))
     ((. breaker callback-name) (sm.top self.stack) ...)
